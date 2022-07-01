@@ -14,3 +14,4 @@ SIM_TRACE_LOG: episode, step, x-coordinate, y-coordinate, heading, steering_angl
 # Download https://github.com/dgnzlz/Capstone_AWS_DeepRacer/tree/master/Compute_Speed_And_Actions https://raw.githubusercontent.com/dgnzlz/Capstone_AWS_DeepRacer/master/Compute_Speed_And_Actions/RaceLine_Speed_ActionSpace.ipynb
 # Download raceline https://github.com/cdthompson/deepracer-k1999-race-lines/blob/master/racelines/reinvent_base-400-4-2019-10-11-161903.npy
 # update fpath = "/workspace/analysis/reinvet_base-400-4-2019-10-11-161903.npy"
+# race line https://github.com/cdthompson/deepracer-k1999-race-lines/blob/master/racelines/reinvent_base-400-4-2019-10-11-161903.py
