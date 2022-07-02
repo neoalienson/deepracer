@@ -2,8 +2,9 @@ import math
 
 
 class Reward:
-    SPEED_MULTIPLE = 2
-    DISTANCE_MULTIPLE = 1    
+    SPEED_MULTIPLIER = 2
+    STEP_MULTIPLIER = 0
+    DISTANCE_MULTIPLIER = 1    
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
@@ -23,7 +24,8 @@ class Reward:
         else:
             speed_reward = 0
         if self.verbose == True:
-            print(f"Speed: {speed} , optimal: {optimals[2]}, reward (w/out multiple): {speed_reward:.3f}, diff: {speed_diff:.3f}")
+            # Speed, Optimal Speed, Reward reward (w/out multiple), Speed Difference
+            print(f"s: {speed} , so: {optimals[2]}, sr: {speed_reward:.3f}, sd: {speed_diff:.3f}")
         return speed_reward
 
     def reward_function(self, params):
@@ -161,8 +163,6 @@ class Reward:
             except:
                 projected_time = 9999
 
-            if self.verbose == True:
-              print(f"projected time: {projected_time}")
             return projected_time
 
 
@@ -314,7 +314,7 @@ class Reward:
         closest_index, second_closest_index = closest_2_racing_points_index(
             racing_track, [x, y])
         if self.verbose == True:
-          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, h: {heading:.2f}, p: {progress}, st: {steps}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
+          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, h: {heading:.2f}, p: {progress:.2f}, st: {steps:3.0f}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
 
         # Get optimal [x, y, speed, time] for closest and second closest index
         optimals = racing_track[closest_index]
@@ -332,12 +332,12 @@ class Reward:
         ## Reward if car goes close to optimal racing line ##
         dist = dist_to_racing_line(optimals[0:2], optimals_second[0:2], [x, y])
         distance_reward = max(1e-3, 1 - (dist/(track_width*0.5)))
-        reward += distance_reward * self.DISTANCE_MULTIPLE
+        reward += distance_reward * self.DISTANCE_MULTIPLIER
 
         ## Reward if speed is close to optimal speed ##
 
         speed_reward = self.cal_speed_reward(optimals, speed)
-        reward += speed_reward * self.SPEED_MULTIPLE
+        reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
 
@@ -350,7 +350,7 @@ class Reward:
             steps_reward = min(self.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
         except:
             steps_reward = 0
-        reward += steps_reward
+        reward += steps_reward * self.STEP_MULTIPLIER
 
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
@@ -377,11 +377,10 @@ class Reward:
             reward = 1e-3
 
         ####################### VERBOSE #######################
-        
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"ci: {closest_index}, dl: {dist:.3f}, dr: {distance_reward:.3f}, dd: {direction_diff:.3f}, pt: {projected_time}, sr{steps_reward:.3f}, fr: {finish_reward}, r: {reward}")
+            print(f"ci: {closest_index}, dl: {dist:.3f}, dr: {distance_reward:.3f}, dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sr: {steps_reward:.2f}, fr: {finish_reward:.2f}, r: {reward:.2f}")
             
         return float(reward)
 

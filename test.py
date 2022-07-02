@@ -12,7 +12,7 @@ class TestRewardFunction(unittest.TestCase):
      'is_left_of_center': True,
      'heading': 0.1910,
      'progress': 0.7920,
-     'steps': 1,
+     'steps': 1.0,
      'speed': 1.63,
      'steering_angle': -8.57,
      'track_width':  0.76,
