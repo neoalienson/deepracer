@@ -117,7 +117,11 @@ class Reward:
         # Gives back indexes that lie between start and end index of a cyclical list 
         # (start index is included, end index is not)
         def indexes_cyclical(start, end, array_len):
-
+            if self.verbose == True:
+              print("start: ")
+              print(start)
+              print("end: ")
+              print(end)
             if end < start:
                 end += array_len
 
@@ -129,6 +133,8 @@ class Reward:
             # Calculate how much time has passed since start
             current_actual_time = (step_count-1) / 15
 
+            if self.verbose == True:
+              print("projected time")
             # Calculate which indexes were already passed
             indexes_traveled = indexes_cyclical(first_index, closest_index, len(times_list))
 
