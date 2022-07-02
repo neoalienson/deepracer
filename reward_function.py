@@ -2,9 +2,16 @@ import math
 
 
 class Reward:
+    DEFAULT_REWARD = 0.5
+    ################ Reward Weighting  ###############################
+    # original 2
     SPEED_MULTIPLIER = 1
+    # original 1
     STEP_MULTIPLIER = 0
-    DISTANCE_MULTIPLIER = 2   
+    # original 1
+    DISTANCE_MULTIPLIER = 2
+    ##################################################################
+
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
@@ -327,7 +334,7 @@ class Reward:
         ################ REWARD AND PUNISHMENT ################
 
         ## Define the default reward ##
-        reward = 1
+        reward = self.DEFAULT_REWARD
 
         ## Reward if car goes close to optimal racing line ##
         dist = dist_to_racing_line(optimals[0:2], optimals_second[0:2], [x, y])
