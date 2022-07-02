@@ -136,8 +136,6 @@ class Reward:
         # Gives back indexes that lie between start and end index of a cyclical list 
         # (start index is included, end index is not)
         def indexes_cyclical(start, end, array_len):
-            if self.verbose == True or start is None or end is None:
-              print(f"start: {start}, end: {end}")
             if end < start:
                 end += array_len
 
@@ -309,26 +307,21 @@ class Reward:
         waypoints = params['waypoints']
         closest_waypoints = params['closest_waypoints']
         is_offtrack = params['is_offtrack']
-        if self.verbose == True:
-          print(f'x: {x:.2f}, y: {y:.2f}, fc: {distance_from_center:.2f}, il: {is_left_of_center}, h: {heading:.2f}, p: {progress}, st: {steps}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}')
-        
+
         ############### OPTIMAL X,Y,SPEED,TIME ################
 
         # Get closest indexes for racing line (and distances to all points on racing line)
         closest_index, second_closest_index = closest_2_racing_points_index(
             racing_track, [x, y])
         if self.verbose == True:
-          print(f'closest_index: {closest_index}, second_closest_index: {second_closest_index}')
+          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, h: {heading:.2f}, p: {progress}, st: {steps}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
 
         # Get optimal [x, y, speed, time] for closest and second closest index
         optimals = racing_track[closest_index]
         optimals_second = racing_track[second_closest_index]
 
         # Save first racingpoint of episode for later
-        if self.verbose == True:
-            self.first_racingpoint_index = 0 # this is just for testing purposes
-
-        if steps == 1:
+        if steps == 1 or self.first_racingpoint_index is None:
             self.first_racingpoint_index = closest_index
 
         ################ REWARD AND PUNISHMENT ################
@@ -386,11 +379,9 @@ class Reward:
         ####################### VERBOSE #######################
         
         if self.verbose == True:
-            print(f"Closest index: {closest_index}, Distance to racing line: {dist:.3f}")
-            print(f"Distance reward (w/out multiple): {distance_reward:.3f}")
-            print(f"Direction difference: {direction_diff:.3f}")
-            print(f"Predicted time: {projected_time}")
-            print(f"=== Steps reward: {steps_reward:.3f}, Finish reward: {finish_reward}, Reward: {reward} ===")
+            # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
+            # Predicted time, Steps reward, Finish reward, Reward
+            print(f"ci: {closest_index}, dl: {dist:.3f}, dr: {distance_reward:.3f}, dd: {direction_diff:.3f}, pt: {projected_time}, sr{steps_reward:.3f}, fr: {finish_reward}, r: {reward}")
             
         return float(reward)
 
