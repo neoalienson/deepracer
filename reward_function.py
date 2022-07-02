@@ -2,9 +2,9 @@ import math
 
 
 class Reward:
-    SPEED_MULTIPLIER = 2
+    SPEED_MULTIPLIER = 1
     STEP_MULTIPLIER = 0
-    DISTANCE_MULTIPLIER = 1    
+    DISTANCE_MULTIPLIER = 2   
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
