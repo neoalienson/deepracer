@@ -9,7 +9,7 @@ class Reward:
     # original 1
     STEP_MULTIPLIER = 0
     # original 1
-    DISTANCE_MULTIPLIER = 2
+    DISTANCE_MULTIPLIER = 2.5
     ##################################################################
 
     SPEED_DIFF_NO_REWARD = 1
