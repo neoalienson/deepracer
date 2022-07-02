@@ -117,7 +117,7 @@ class Reward:
         # Gives back indexes that lie between start and end index of a cyclical list 
         # (start index is included, end index is not)
         def indexes_cyclical(start, end, array_len):
-            if self.verbose == True:
+            if self.verbose == True || start is None || end is None::
               print("start: ")
               print(start)
               print("end: ")
