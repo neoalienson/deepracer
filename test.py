@@ -20,13 +20,16 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': 1,
      'is_offtrack': False
      }
-     print("no. of wayponts: ")
-     print(len(self.params['waypoints']))
-     self.reward_object = Reward(verbose=True)
+     self.ro = Reward(verbose=True)
      
      
   def test_basic(self):
-    self.assertTrue(self.reward_object.reward_function(self.params))
-    
+    self.assertTrue(self.ro.reward_function(self.params))
+
+  def test_speed_reward(self):
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.63), 0)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 4), 1)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3), 0)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3.8), 0.9216)    
 if __name__ == '__main__':
     unittest.main()
