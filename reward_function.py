@@ -27,7 +27,11 @@ class Reward:
         self.first_racingpoint_index = None
         self.verbose = verbose
 
-    def cal_speed_reward(self, optimals, speed):
+    def cal_speed_reward(self, optimals, speed, all_wheels_on_track):
+        ## no speed reward if one wheel is off track ##
+        if all_wheels_on_track == False:
+            return 0
+
         speed_diff = (optimals[2] * (1 - self.SPEED_REDUCTION))-speed
         if abs(speed_diff) <= self.SPEED_DIFF_NO_REWARD:
             # we use quadratic punishment (not linear) bc we're not as confident with the optimal speed
@@ -354,7 +358,7 @@ class Reward:
 
         ## Reward if speed is close to optimal speed ##
 
-        speed_reward = self.cal_speed_reward(optimals, speed)
+        speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track)
         reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
@@ -391,10 +395,6 @@ class Reward:
         else:
             finish_reward = 0
         reward += finish_reward
-        
-        ## no speed reward if one wheel is off track ##
-        if all_wheels_on_track == False:
-            speed_reward = 0
 
         ####################### VERBOSE #######################
         if self.verbose == True:
