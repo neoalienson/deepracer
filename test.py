@@ -1,5 +1,5 @@
 #from reward_function import reward_function
-from reward_function import Reward
+from reward_function import Rewar d
 import unittest
 import math
 
