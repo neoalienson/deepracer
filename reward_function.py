@@ -376,7 +376,7 @@ class Reward:
         if direction_diff > 30:
             reward = 1e-3
             if self.verbose:
-                printf(f"WRONG DIRECTION: {direction_diff:.1f}")
+                print(f"WRONG DIRECTION: {direction_diff:.1f}")
 
         # Zero reward of obviously too slow
         speed_diff_zero = optimals[2] - speed
@@ -400,7 +400,7 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"fr: {finish_reward:.2f}, dr: {distance_reward:.3f}, sr: {steps_reward:.2f}, r: {reward:.2f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(f"fr: {finish_reward:.2f}, dr: {distance_reward:.3f}, tr: {steps_reward:.2f}, sr: {speed_reward:.2f},  r: {reward:.2f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
             
         return float(reward)
 
