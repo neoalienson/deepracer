@@ -41,6 +41,8 @@ class Reward:
         
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
+            if self.verbose:
+                printf(f"OVER SPEED for {speed_diff:.2f}")
 
         return speed_reward
 
@@ -373,7 +375,9 @@ class Reward:
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if direction_diff > 30:
             reward = 1e-3
-            
+            if self.verbose:
+                printf(f"WRONG DIRECTION: {direction_diff:.1f}")
+
         # Zero reward of obviously too slow
         speed_diff_zero = optimals[2] - speed
         if speed_diff_zero > 0.5:
