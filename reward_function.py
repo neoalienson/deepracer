@@ -42,7 +42,7 @@ class Reward:
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
             if self.verbose:
-                printf(f"OVER SPEED for {speed_diff:.2f}")
+                print(f"OVER SPEED for {speed_diff:.2f}")
 
         return speed_reward
 

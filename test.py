@@ -27,6 +27,10 @@ class TestRewardFunction(unittest.TestCase):
     self.ro.verbose = False
     self.assertTrue(self.ro.reward_function(self.params))
 
+  def test_verbose(self):
+    self.ro.verbose = True
+    self.assertTrue(self.ro.reward_function(self.params))
+
   def test_offtrack(self):
     self.ro.verbose = False
     self.params['is_offtrack']= True
