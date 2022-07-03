@@ -392,9 +392,9 @@ class Reward:
             finish_reward = 0
         reward += finish_reward
         
-        ## Zero reward if off track ##
-        if all_wheels_on_track == False:
-            reward = 1e-3
+        # ## Zero reward if off track ##
+        # if all_wheels_on_track == False:
+        #     reward = 1e-3
 
         ####################### VERBOSE #######################
         if self.verbose == True:
