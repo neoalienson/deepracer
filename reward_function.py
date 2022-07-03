@@ -2,14 +2,15 @@ import math
 
 
 class Reward:
-    DEFAULT_REWARD = 0.5
+    # original 1
+    BASE_REWARD = 0.5
     ################ Reward Weighting  ###############################
     # original 2
     SPEED_MULTIPLIER = 1
     # original 1
-    STEP_MULTIPLIER = 0
+    STEP_MULTIPLIER = 1
     # original 1
-    DISTANCE_MULTIPLIER = 2.5
+    DISTANCE_MULTIPLIER = 1
     ##################################################################
 
     SPEED_DIFF_NO_REWARD = 1
@@ -30,9 +31,9 @@ class Reward:
             speed_reward = (1 - (speed_diff/(self.SPEED_DIFF_NO_REWARD))**2)**2
         else:
             speed_reward = 0
-        if self.verbose == True:
+#        if self.verbose == True:
             # Speed, Optimal Speed, Reward reward (w/out multiple), Speed Difference
-            print(f"s: {speed} , so: {optimals[2]}, sr: {speed_reward:.3f}, sd: {speed_diff:.3f}")
+#            print(f"s: {speed} , so: {optimals[2]}, sr: {speed_reward:.3f}, sd: {speed_diff:.3f}")
         return speed_reward
 
     def reward_function(self, params):
@@ -334,7 +335,7 @@ class Reward:
         ################ REWARD AND PUNISHMENT ################
 
         ## Define the default reward ##
-        reward = self.DEFAULT_REWARD
+        reward = self.BASE_REWARD
 
         ## Reward if car goes close to optimal racing line ##
         dist = dist_to_racing_line(optimals[0:2], optimals_second[0:2], [x, y])
@@ -387,7 +388,7 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"ci: {closest_index}, dl: {dist:.3f}, dr: {distance_reward:.3f}, dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sr: {steps_reward:.2f}, fr: {finish_reward:.2f}, r: {reward:.2f}")
+            print(f"fr: {finish_reward:.2f}, dr: {distance_reward:.3f}, sr: {steps_reward:.2f}, r: {reward:.2f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
             
         return float(reward)
 

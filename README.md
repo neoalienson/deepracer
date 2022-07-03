@@ -18,3 +18,7 @@ SIM_TRACE_LOG: episode, step, x-coordinate, y-coordinate, heading, steering_angl
 * Download raceline https://github.com/cdthompson/deepracer-k1999-race-lines/blob/master/racelines/reinvent_base-400-4-2019-10-11-161903.npy
 * update fpath = "/workspace/analysis/reinvet_base-400-4-2019-10-11-161903.npy"
 * race line https://github.com/cdthompson/deepracer-k1999-race-lines/blob/master/racelines/reinvent_base-400-4-2019-10-11-161903.py
+
+# AWS commands
+* aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 ls s3://bucket
+* aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 rm --recursive s3://bucket/rl-deepracer-1
