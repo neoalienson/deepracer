@@ -8,9 +8,9 @@ class Reward:
     # original 2
     SPEED_MULTIPLIER = 0
     # original 1
-    STEP_MULTIPLIER = 0
+    STEP_MULTIPLIER = 1
     # original 1
-    DISTANCE_MULTIPLIER = 2
+    DISTANCE_MULTIPLIER = 3
     ##################################################################
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
