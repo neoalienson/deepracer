@@ -392,15 +392,15 @@ class Reward:
             finish_reward = 0
         reward += finish_reward
         
-        # ## Zero reward if off track ##
-        # if all_wheels_on_track == False:
-        #     reward = 1e-3
+        ## no speed reward if one wheel is off track ##
+        if all_wheels_on_track == False:
+            speed_reward = 0
 
         ####################### VERBOSE #######################
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, dr: {distance_reward:.3f}, sr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
             
         return float(reward)
 
