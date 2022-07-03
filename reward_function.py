@@ -380,7 +380,7 @@ class Reward:
 
         # Zero reward of obviously too slow
         speed_diff_zero = optimals[2] - speed
-        if speed_diff_zero > 0.5:
+        if speed_diff_zero > 0.5 and steps > 3:
             reward = 1e-3
             
         ## Incentive for finishing the lap in less steps ##
@@ -400,7 +400,7 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"fr: {finish_reward:.2f}, dr: {distance_reward:.3f}, sr: {steps_reward:.2f}, r: {reward:.2f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, dr: {distance_reward:.3f}, sr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
             
         return float(reward)
 

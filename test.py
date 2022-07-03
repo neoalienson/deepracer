@@ -40,12 +40,12 @@ class TestRewardFunction(unittest.TestCase):
   def test_slow_after_reset(self):
     self.ro.verbose = False
     self.params['speed']= 0.0
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 972)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 971)
 
   def test_slow_after_10_steps(self):
     self.ro.verbose = False
     self.params['speed']= 0.0
-    self.params['steps']= 11
+    self.params['steps']= 4
     self.assertEqual(self.ro.reward_function(self.params), 1e-3)
 
   def test_speed_reward(self):
