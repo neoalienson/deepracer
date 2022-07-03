@@ -6,11 +6,11 @@ class Reward:
     BASE_REWARD = 1e-3
     ################ Reward Weighting  ###############################
     # original 2
-    SPEED_MULTIPLIER = 2
+    SPEED_MULTIPLIER = 0
     # original 1
-    STEP_MULTIPLIER = 1
+    STEP_MULTIPLIER = 3
     # original 1
-    DISTANCE_MULTIPLIER = 1
+    DISTANCE_MULTIPLIER = 5
     ##################################################################
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
@@ -185,7 +185,7 @@ class Reward:
 
         #################### RESET ############################
         self.warning = ""
-        
+
         #################### RACING LINE ######################
 
         # Optimal racing line for the Spain track
