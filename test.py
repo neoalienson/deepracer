@@ -43,7 +43,14 @@ class TestRewardFunction(unittest.TestCase):
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 0.82), 0)
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 2), 1)
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.0), 0)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.9), 0.9801)    
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.9), 0.9801)
+
+  def test_over_speed_reward(self):
+    self.ro.verbose = False
+    self.ro.SPEED_REDUCTION = 0
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1), 0)
+    self.ro.OVER_SPEED_REWARD = 1
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1), 0.9801)
 
 if __name__ == '__main__':
     unittest.main()

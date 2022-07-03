@@ -3,7 +3,7 @@ import math
 
 class Reward:
     # original 1
-    BASE_REWARD = 1
+    BASE_REWARD = 0
     ################ Reward Weighting  ###############################
     # original 2
     SPEED_MULTIPLIER = 2
@@ -15,6 +15,7 @@ class Reward:
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
     SPEED_REDUCTION = 0
+    OVER_SPEED_REWARD = 0
 
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
@@ -27,16 +28,20 @@ class Reward:
         self.verbose = verbose
 
     def cal_speed_reward(self, optimals, speed):
-        speed_diff = abs((optimals[2] * (1 - self.SPEED_REDUCTION))-speed)
-        if speed_diff <= self.SPEED_DIFF_NO_REWARD:
+        speed_diff = (optimals[2] * (1 - self.SPEED_REDUCTION))-speed
+        if abs(speed_diff) <= self.SPEED_DIFF_NO_REWARD:
             # we use quadratic punishment (not linear) bc we're not as confident with the optimal speed
             # so, we do not punish small deviations from optimal speed
-            speed_reward = (1 - (speed_diff/(self.SPEED_DIFF_NO_REWARD))**2)**2
+            speed_reward = (1 - (abs(speed_diff)/(self.SPEED_DIFF_NO_REWARD))**2)**2
         else:
             speed_reward = 0
 #        if self.verbose == True:
             # Speed, Optimal Speed, Reward reward (w/out multiple), Speed Difference
 #            print(f"s: {speed} , so: {optimals[2]}, sr: {speed_reward:.3f}, sd: {speed_diff:.3f}")
+        
+        if speed_diff < 0:
+            speed_reward = speed_reward * self.OVER_SPEED_REWARD
+
         return speed_reward
 
     def reward_function(self, params):
