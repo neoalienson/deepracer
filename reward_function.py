@@ -336,7 +336,7 @@ class Reward:
         closest_index, second_closest_index = closest_2_racing_points_index(
             racing_track, [x, y])
         if self.verbose == True:
-          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, h: {heading:.2f}, p: {progress:.2f}, st: {steps:3.0f}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
+          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, aw: {all_wheels_on_track}, h: {heading:.2f}, p: {progress:.2f}, st: {steps:3.0f}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
 
         # Get optimal [x, y, speed, time] for closest and second closest index
         optimals = racing_track[closest_index]
@@ -378,17 +378,18 @@ class Reward:
         direction_diff = racing_direction_diff(
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if direction_diff > 30:
-            reward = 1e-3
             if self.verbose:
                 print(f"WRONG DIRECTION: {direction_diff:.1f}")
+            return float(1e-3)
 
         # Zero reward of obviously too slow
         speed_diff_zero = optimals[2] - speed
         if speed_diff_zero > 0.5 and steps > 3:
-            reward = 1e-3
+            if self.verbose:
+                print(f"TOO SLOW: diff: {speed_diff_zero:.1f}")
+            speed_reward = 0.0
             
         ## Incentive for finishing the lap in less steps ##
-
         if progress == 100:
             finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME /
                       (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
