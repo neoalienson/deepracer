@@ -17,6 +17,7 @@ class Reward:
     SPEED_REDUCTION = 0
     OVER_SPEED_REWARD = 0
 
+    OVER_STEERING = 20
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
@@ -373,7 +374,7 @@ class Reward:
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
             optimals[0:2], optimals_second[0:2], [x, y], heading)
-        if direction_diff > 30:
+        if direction_diff > self.OVER_STEERING:
             reward = 1e-3
             self.warning = f"WRONG DIRECTION: {direction_diff:.1f} {self.warning}"
 
