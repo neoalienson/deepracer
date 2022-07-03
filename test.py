@@ -24,16 +24,26 @@ class TestRewardFunction(unittest.TestCase):
      
      
   def test_basic(self):
+    self.ro.verbose = False
     self.assertTrue(self.ro.reward_function(self.params))
 
   def test_offtrack(self):
+    self.ro.verbose = False
     self.params['is_offtrack']= True
     self.assertEqual(self.ro.reward_function(self.params), 1e-3)
 
   def test_speed_reward(self):
+    self.ro.verbose = False
+    self.ro.SPEED_REDUCTION = 0
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.63), 0)
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 4), 1)
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3), 0)
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3.8), 0.9216)    
+    self.ro.SPEED_REDUCTION = 0.5
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 0.82), 0)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 2), 1)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.0), 0)
+    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.9), 0.9801)    
+
 if __name__ == '__main__':
     unittest.main()

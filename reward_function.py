@@ -13,6 +13,9 @@ class Reward:
     DISTANCE_MULTIPLIER = 1
     ##################################################################
 
+    #### 0 for no reduction, 1 to reduce speed to zero ###############
+    SPEED_REDUCTION = 0.5
+
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
@@ -24,7 +27,7 @@ class Reward:
         self.verbose = verbose
 
     def cal_speed_reward(self, optimals, speed):
-        speed_diff = abs(optimals[2]-speed)
+        speed_diff = abs((optimals[2] * (1 - self.SPEED_REDUCTION))-speed)
         if speed_diff <= self.SPEED_DIFF_NO_REWARD:
             # we use quadratic punishment (not linear) bc we're not as confident with the optimal speed
             # so, we do not punish small deviations from optimal speed
