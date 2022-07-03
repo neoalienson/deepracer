@@ -183,7 +183,9 @@ class Reward:
 
             return projected_time
 
-
+        #################### RESET ############################
+        self.warning = ""
+        
         #################### RACING LINE ######################
 
         # Optimal racing line for the Spain track
