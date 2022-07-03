@@ -377,7 +377,7 @@ class Reward:
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
             optimals[0:2], optimals_second[0:2], [x, y], heading)
-        if direction_diff > 15:
+        if direction_diff > 30:
             if self.verbose:
                 print(f"WRONG DIRECTION: {direction_diff:.1f}")
             return float(1e-3)
