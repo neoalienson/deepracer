@@ -3,10 +3,10 @@ import math
 
 class Reward:
     # original 1
-    BASE_REWARD = 0.5
+    BASE_REWARD = 1
     ################ Reward Weighting  ###############################
     # original 2
-    SPEED_MULTIPLIER = 1
+    SPEED_MULTIPLIER = 2
     # original 1
     STEP_MULTIPLIER = 1
     # original 1
@@ -14,7 +14,7 @@ class Reward:
     ##################################################################
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
-    SPEED_REDUCTION = 0.5
+    SPEED_REDUCTION = 0
 
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
