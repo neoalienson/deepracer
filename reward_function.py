@@ -3,7 +3,7 @@ import math
 
 class Reward:
     # original 1
-    BASE_REWARD = 0
+    BASE_REWARD = 1e-3
     ################ Reward Weighting  ###############################
     # original 2
     SPEED_MULTIPLIER = 2
@@ -26,6 +26,7 @@ class Reward:
     def __init__(self, verbose=False):
         self.first_racingpoint_index = None
         self.verbose = verbose
+        self.warning = ""
 
     def cal_speed_reward(self, optimals, speed):
         speed_diff = (optimals[2] * (1 - self.SPEED_REDUCTION))-speed
@@ -41,8 +42,7 @@ class Reward:
         
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
-            if self.verbose:
-                print(f"OVER SPEED for {speed_diff:.2f}")
+            self.warning = f"OVER SPEED for {speed_diff:.2f} {self.warning}"
 
         return speed_reward
 
@@ -351,14 +351,12 @@ class Reward:
         dist = dist_to_racing_line(optimals[0:2], optimals_second[0:2], [x, y])
         distance_reward = max(1e-3, 1 - (dist/(track_width*0.5)))
         reward += distance_reward * self.DISTANCE_MULTIPLIER
-
         ## Reward if speed is close to optimal speed ##
 
         speed_reward = self.cal_speed_reward(optimals, speed)
         reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
-
         times_list = [row[3] for row in racing_track]
         projected_time = projected_time(self.first_racingpoint_index, closest_index, steps, times_list)
         try:
@@ -375,16 +373,15 @@ class Reward:
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if direction_diff > 30:
             reward = 1e-3
-            if self.verbose:
-                print(f"WRONG DIRECTION: {direction_diff:.1f}")
+            self.warning = f"WRONG DIRECTION: {direction_diff:.1f} {self.warning}"
 
-        # Zero reward of obviously too slow
+        # Zero reward of obviously too slow unless it is being reset
         speed_diff_zero = optimals[2] - speed
-        if speed_diff_zero > 0.5:
+        if speed_diff_zero > 0.5 and steps > 10:
             reward = 1e-3
+            self.warning = f"TOO SLOW: {speed_diff_zero:.2f} {self.warning}"
             
         ## Incentive for finishing the lap in less steps ##
-
         if progress == 100:
             finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME /
                       (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
@@ -393,14 +390,16 @@ class Reward:
         reward += finish_reward
         
         ## Zero reward if off track ##
-        if all_wheels_on_track == False:
+        if not all_wheels_on_track:
             reward = 1e-3
+            self.warning = f"OFF TRACK {self.warning}"
 
         ####################### VERBOSE #######################
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
             print(f"fr: {finish_reward:.2f}, dr: {distance_reward:.3f}, tr: {steps_reward:.2f}, sr: {speed_reward:.2f},  r: {reward:.2f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(self.warning)
             
         return float(reward)
 

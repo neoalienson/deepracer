@@ -1,6 +1,7 @@
 #from reward_function import reward_function
 from reward_function import Reward
 import unittest
+import math
 
 class TestRewardFunction(unittest.TestCase):
   def setUp(self):
@@ -31,9 +32,20 @@ class TestRewardFunction(unittest.TestCase):
     self.ro.verbose = True
     self.assertTrue(self.ro.reward_function(self.params))
 
-  def test_offtrack(self):
+  def test_all_wheels_on_track(self):
     self.ro.verbose = False
-    self.params['is_offtrack']= True
+    self.params['all_wheels_on_track']= False
+    self.assertEqual(self.ro.reward_function(self.params), 1e-3)
+
+  def test_slow_after_reset(self):
+    self.ro.verbose = False
+    self.params['speed']= 0.0
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 972)
+
+  def test_slow_after_10_steps(self):
+    self.ro.verbose = False
+    self.params['speed']= 0.0
+    self.params['steps']= 11
     self.assertEqual(self.ro.reward_function(self.params), 1e-3)
 
   def test_speed_reward(self):
