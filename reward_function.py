@@ -19,9 +19,9 @@ class Reward:
 
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
-    REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards
-    STANDARD_TIME = 10  # seconds (time that is easily done by model)
-    FASTEST_TIME = 8  # seconds (best time of 1st place on the track)
+    REWARD_FOR_FASTEST_TIME = 1500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
+    STANDARD_TIME = 11.5  # seconds (time that is easily done by model)
+    FASTEST_TIME = 7.3  # seconds (best time of 1st place on the track)
 
     def __init__(self, verbose=False):
         self.first_racingpoint_index = None
