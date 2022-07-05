@@ -14,7 +14,7 @@ class Reward:
     ##################################################################
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
-    SPEED_REDUCTION = 0.1
+    SPEED_REDUCTION = 0
     OVER_SPEED_REWARD = 0
 
     SPEED_DIFF_NO_REWARD = 1
