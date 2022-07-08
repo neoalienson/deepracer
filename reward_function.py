@@ -46,7 +46,7 @@ class Reward:
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
             if self.verbose:
-                self.state = f"OVER SPEED for {speed_diff:.2f}" % self.state
+                self.state = f"OVER SPEED for {speed_diff:.2f} {self.state}"
 
         return speed_reward
 
