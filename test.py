@@ -43,7 +43,7 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': [42, 43],
      'is_offtrack': False
     }
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 994)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 1042)
 
   def test_basic(self):
     self.ro.verbose = False
@@ -53,13 +53,17 @@ class TestRewardFunction(unittest.TestCase):
     self.ro.verbose = True
     self.assertTrue(self.ro.reward_function(self.params))
 
+  def test_offtrack(self):
+    self.params['is_offtrack']= True
+    self.assertEqual(self.ro.reward_function(self.params), 1e-3)
+
   def test_all_wheels_on_track(self):
     self.ro.verbose = False
     self.params['all_wheels_on_track']= False
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
 
   def test_slow_after_reset(self):
-    self.ro.verbose = True
+    self.ro.verbose = False
     self.params['speed']= 0.0
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
 

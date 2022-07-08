@@ -26,7 +26,7 @@ class Reward:
     def __init__(self, verbose=False):
         self.first_racingpoint_index = None
         self.verbose = verbose
-
+        
     def cal_speed_reward(self, optimals, speed, all_wheels_on_track):
         ## no speed reward if one wheel is off track ##
         if all_wheels_on_track == False:
@@ -46,7 +46,7 @@ class Reward:
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
             if self.verbose:
-                print(f"OVER SPEED for {speed_diff:.2f}")
+                self.state = f"OVER SPEED for {speed_diff:.2f}" % self.state
 
         return speed_reward
 
@@ -278,6 +278,8 @@ class Reward:
         closest_waypoints = params['closest_waypoints']
         is_offtrack = params['is_offtrack']
 
+        self.state = ""
+
         ############### OPTIMAL X,Y,SPEED,TIME ################
 
         # Get closest indexes for racing line (and distances to all points on racing line)
@@ -285,6 +287,12 @@ class Reward:
             racing_track, [x, y])
         if self.verbose == True:
           print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, aw: {all_wheels_on_track}, h: {heading:.2f}, p: {progress:.2f}, st: {steps:3.0f}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
+
+        if is_offtrack == True:
+            self.state = f"OFF TRACK {self.state}"
+            print(f"r: {1e-3:.3f}")
+            print(f"STATE: {self.state}")
+            return float(1e-3)
 
         # Get optimal [x, y, speed, time] for closest and second closest index
         optimals = racing_track[closest_index]
@@ -327,14 +335,16 @@ class Reward:
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if direction_diff > 30:
             if self.verbose:
-                print(f"WRONG DIRECTION: {direction_diff:.1f}")
+                self.state = f"WRONG DIRECTION: {direction_diff:.1f} " % self.state
+                print(f"r: {reward:.3f}")
+                print(f"STATE: {self.state}")
             return float(1e-3)
 
         # Zero reward of obviously too slow
         speed_diff_zero = optimals[2] - speed
         if speed_diff_zero > 0.5 and steps > 3:
             if self.verbose:
-                print(f"TOO SLOW: diff: {speed_diff_zero:.1f}")
+                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f}" % self.state
             speed_reward = 0.0
             
         ## Incentive for finishing the lap in less steps ##
@@ -350,6 +360,7 @@ class Reward:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
             print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(f"STATE: {self.state}")
             
         return float(reward)
 
