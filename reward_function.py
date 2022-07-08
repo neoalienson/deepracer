@@ -335,7 +335,7 @@ class Reward:
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if direction_diff > 30:
             if self.verbose:
-                self.state = f"WRONG DIRECTION: {direction_diff:.1f} " % self.state
+                self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
                 print(f"r: {reward:.3f}")
                 print(f"STATE: {self.state}")
             return float(1e-3)
@@ -344,7 +344,7 @@ class Reward:
         speed_diff_zero = optimals[2] - speed
         if speed_diff_zero > 0.5 and steps > 3:
             if self.verbose:
-                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f}" % self.state
+                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f} {self.state}"
             speed_reward = 0.0
             
         ## Incentive for finishing the lap in less steps ##
