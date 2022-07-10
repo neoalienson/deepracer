@@ -13,12 +13,11 @@ class Reward:
     DISTANCE_MULTIPLIER = 1
     ##################################################################
 
-    #### 0 for no reduction, 1 to reduce speed to zero ###############
-    SPEED_REDUCTION = 0
     #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
     OVER_SPEED_REWARD = 0.75
 
-    SPEED_DIFF_NO_REWARD = 1
+    ALLOW_WHEEL_OFF_TRACK = True
+    SPEED_DIFF_NO_REWARD = 1.0
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
     REWARD_FOR_FASTEST_TIME = 800 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
     STANDARD_TIME = 11.5  # seconds (time that is easily done by model)
@@ -30,19 +29,16 @@ class Reward:
         
     def cal_speed_reward(self, optimals, speed, all_wheels_on_track):
         ## no speed reward if one wheel is off track ##
-        if all_wheels_on_track == False:
+        if self.ALLOW_WHEEL_OFF_TRACK and all_wheels_on_track == False:
             return 0
 
-        speed_diff = (optimals[2] * (1 - self.SPEED_REDUCTION))-speed
+        speed_diff = optimals[2] - speed
         if abs(speed_diff) <= self.SPEED_DIFF_NO_REWARD:
             # we use quadratic punishment (not linear) bc we're not as confident with the optimal speed
             # so, we do not punish small deviations from optimal speed
             speed_reward = (1 - (abs(speed_diff)/(self.SPEED_DIFF_NO_REWARD))**2)**2
         else:
             speed_reward = 0
-#        if self.verbose == True:
-            # Speed, Optimal Speed, Reward reward (w/out multiple), Speed Difference
-#            print(f"s: {speed} , so: {optimals[2]}, sr: {speed_reward:.3f}, sd: {speed_diff:.3f}")
         
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
