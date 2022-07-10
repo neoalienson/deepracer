@@ -339,6 +339,8 @@ class Reward:
             steps_reward = min(self.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
         except:
             steps_reward = 0
+            steps_prediction = 0
+            reward_prediction = 0
         reward += steps_reward * self.STEP_MULTIPLIER
 
         # Zero reward if obviously wrong direction (e.g. spin)
@@ -364,7 +366,7 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}")
+            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sp: {steps_prediction:2f}, rp: {reward_prediction:2f}")
             print(f"STATE: {self.state}")
             
         return float(reward)
