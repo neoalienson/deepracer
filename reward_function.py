@@ -327,7 +327,7 @@ class Reward:
 
         ## Reward if speed is close to optimal speed ##
         speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track, steps)
-        reward += speed_reward * self.SPEED_MULTIPLIER
+        reward += speed_reward * self.SPEED_MULTIPLIER * max(1e-3, 1 - (dist/(track_width*0.5)))
 
         # Reward if less steps
         times_list = [row[3] for row in racing_track]
@@ -366,7 +366,7 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sp: {steps_prediction:2f}, rp: {reward_prediction:2f}")
+            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}, di: {dist:.2f}")
             print(f"STATE: {self.state}")
             
         return float(reward)
