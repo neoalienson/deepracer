@@ -45,10 +45,7 @@ class TestRewardFunction(unittest.TestCase):
     }
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 1042)
 
-  def test_basic(self):
-    self.ro.verbose = False
-    self.assertTrue(self.ro.reward_function(self.params))
-
+  # prevent breaking code from verbose 
   def test_verbose(self):
     self.ro.verbose = True
     self.assertTrue(self.ro.reward_function(self.params))
@@ -60,18 +57,18 @@ class TestRewardFunction(unittest.TestCase):
   def test_all_wheels_on_track(self):
     self.ro.verbose = False
     self.params['all_wheels_on_track']= False
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_slow_after_reset(self):
     self.ro.verbose = False
     self.params['speed']= 0.0
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_slow_after_4_steps(self):
     self.ro.verbose = False
     self.params['speed']= 0.0
     self.params['steps']= 4
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_speed_reward(self):
     self.ro.verbose = False
@@ -88,10 +85,12 @@ class TestRewardFunction(unittest.TestCase):
 
   def test_over_speed_reward(self):
     self.ro.verbose = False
-    self.ro.SPEED_REDUCTION = 0
+    self.ro.OVER_SPEED_REWARD = 0
     self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True), 0)
+    self.ro.OVER_SPEED_REWARD = 0.5
+    self.assertEqual(math.ceil(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True) * 1000), 491)
     self.ro.OVER_SPEED_REWARD = 1
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True), 0.9801)
+    self.assertEqual(math.ceil(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True) * 1000), 981)
 
 if __name__ == '__main__':
     unittest.main()

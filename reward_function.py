@@ -15,7 +15,8 @@ class Reward:
 
     #### 0 for no reduction, 1 to reduce speed to zero ###############
     SPEED_REDUCTION = 0
-    OVER_SPEED_REWARD = 0
+    #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
+    OVER_SPEED_REWARD = 0.75
 
     SPEED_DIFF_NO_REWARD = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1 
