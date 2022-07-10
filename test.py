@@ -25,7 +25,7 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': [0, 1],
      'is_offtrack': False
      }
-     self.ro = Reward(verbose=True)
+     self.ro = Reward()
      
   def test_rt_issue_1(self):
     self.ro.verbose = False
@@ -50,6 +50,7 @@ class TestRewardFunction(unittest.TestCase):
   # prevent breaking code from verbose 
   def test_verbose(self):
     self.ro.verbose = True
+    self.ro.DEBUG = True
     self.assertTrue(self.ro.reward_function(self.params))
 
   def test_offtrack(self):
@@ -57,46 +58,38 @@ class TestRewardFunction(unittest.TestCase):
     self.assertEqual(self.ro.reward_function(self.params), 1e-3)
 
   def test_all_wheels_on_track(self):
-    self.ro.verbose = False
     self.params['all_wheels_on_track']= False
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_slow_after_reset(self):
-    self.ro.verbose = False
     self.params['speed']= 0.0
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_slow_after_4_steps(self):
-    self.ro.verbose = False
     self.params['speed']= 0.0
     self.params['steps']= 4
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
 
   def test_speed_reward(self):
-    self.ro.verbose = False
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 2, True, self.steps), 1)  
 
   def test_slow_speed_reward(self):
-    self.ro.verbose = False
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 0.8, True, self.steps), 0)
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 1.5, True, self.steps), 0.5625)
     self.assertEqual(math.ceil(self.ro.cal_speed_reward(self.raceline_point, 1.6, True, self.steps)* 1000), 706)    
 
   def test_speed_reward_on_wheel_off_track(self):
-    self.ro.verbose = False
     self.ro.ALLOW_WHEEL_OFF_TRACK = True
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 2.0, True, self.steps), 1.0)
     self.ro.ALLOW_WHEEL_OFF_TRACK = True
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 2.0, False, self.steps), 0.0)
 
   def test_over_speed_no_reward(self):
-    self.ro.verbose = False
     self.ro.OVER_SPEED_REWARD = 0
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 2.1, True, self.steps), 0.0)
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 3.0, True, self.steps), 0.0)
 
   def test_over_speed_reward(self):
-    self.ro.verbose = False
     self.ro.OVER_SPEED_REWARD = 0.5
     self.assertEqual(math.ceil(self.ro.cal_speed_reward(self.raceline_point, 2.1, True, self.steps) * 1000), 491)
     self.ro.OVER_SPEED_REWARD = 1

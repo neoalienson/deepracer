@@ -23,6 +23,8 @@ class Reward:
     STANDARD_TIME = 11.5  # seconds (time that is easily done by model)
     FASTEST_TIME = 7.5  # seconds (best time of 1st place on the track)
 
+    DEBUG = False
+
     def __init__(self, verbose=False):
         self.first_racingpoint_index = None
         self.verbose = verbose
@@ -289,9 +291,17 @@ class Reward:
         # Get closest indexes for racing line (and distances to all points on racing line)
         closest_index, second_closest_index = closest_2_racing_points_index(
             racing_track, [x, y])
-        if self.verbose == True:
-          print(f'x: {x:.2f}, y: {y:.2f}, dc: {distance_from_center:.2f}, il: {is_left_of_center}, aw: {all_wheels_on_track}, h: {heading:.2f}, p: {progress:.2f}, st: {steps:3.0f}, sp: {speed:.2f}, sa: {steering_angle:.2f}, tw: {track_width:.2f}, cw: {closest_waypoints}, ot: {is_offtrack}, 1c: {closest_index}, 2c: {second_closest_index}')
 
+        # Get optimal [x, y, speed, time] for closest and second closest index
+        optimals = racing_track[closest_index]
+        optimals_second = racing_track[second_closest_index]
+
+        if self.verbose == True:
+          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sp: {speed:.1f}, sa: {steering_angle:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, oa: {optimals[3]:.1f}')
+        if self.DEBUG == True:
+          print(f'dc: {distance_from_center:.2f}, p: {progress:.2f}, st: {steps:3.0f}, cw: {closest_waypoints}, 1c: {closest_index}, 2c: {second_closest_index}, aw: {all_wheels_on_track}, il: {is_left_of_center}, ')
+          print(f'tw: {track_width:.2f}')
+        
         if is_offtrack == True:
             self.state = f"OFF TRACK {self.state}"
             if self.verbose == True:
@@ -299,9 +309,7 @@ class Reward:
                 print(f"STATE: {self.state}")
             return float(1e-3)
 
-        # Get optimal [x, y, speed, time] for closest and second closest index
-        optimals = racing_track[closest_index]
-        optimals_second = racing_track[second_closest_index]
+
 
         # Save first racingpoint of episode for later
         if steps == 1 or self.first_racingpoint_index is None:
