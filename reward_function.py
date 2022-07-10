@@ -27,10 +27,17 @@ class Reward:
         self.first_racingpoint_index = None
         self.verbose = verbose
         
-    def cal_speed_reward(self, optimals, speed, all_wheels_on_track):
+    def cal_speed_reward(self, optimals, speed, all_wheels_on_track, steps):
         ## no speed reward if one wheel is off track ##
         if self.ALLOW_WHEEL_OFF_TRACK and all_wheels_on_track == False:
-            return 0
+            return 0.0
+
+        # Zero reward of obviously too slow
+        speed_diff_zero = optimals[2] - speed
+        if speed_diff_zero > 0.5 and steps > 3:
+            if self.verbose:
+                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f} {self.state}"
+            return 0.0
 
         speed_diff = optimals[2] - speed
         if abs(speed_diff) <= self.SPEED_DIFF_NO_REWARD:
@@ -311,7 +318,7 @@ class Reward:
 
         ## Reward if speed is close to optimal speed ##
 
-        speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track)
+        speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track, steps)
         reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
@@ -337,12 +344,7 @@ class Reward:
                 print(f"STATE: {self.state}")
             return float(1e-3)
 
-        # Zero reward of obviously too slow
-        speed_diff_zero = optimals[2] - speed
-        if speed_diff_zero > 0.5 and steps > 3:
-            if self.verbose:
-                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f} {self.state}"
-            speed_reward = 0.0
+
             
         ## Incentive for finishing the lap in less steps ##
         if progress == 100:
