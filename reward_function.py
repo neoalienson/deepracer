@@ -193,7 +193,7 @@ class Reward:
 
         #################### RACING LINE ######################
 
-        # Optimal racing line for the Spain track
+        # Optimal racing line
         # Each row: [x,y,speed,timeFromPreviousPoint]
         racing_track = [[2.97715, 0.49328, 2.86653, 0.14799],
             [3.22644, 0.45159, 3.31225, 0.07631],
@@ -297,7 +297,7 @@ class Reward:
         optimals_second = racing_track[second_closest_index]
 
         if self.verbose == True:
-          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sp: {speed:.1f}, sa: {steering_angle:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, oa: {optimals[3]:.1f}')
+          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sp: {speed:.1f}, sa: {steering_angle:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, tp: {optimals[3]:.1f}')
         if self.DEBUG == True:
           print(f'dc: {distance_from_center:.2f}, p: {progress:.2f}, st: {steps:3.0f}, cw: {closest_waypoints}, 1c: {closest_index}, 2c: {second_closest_index}, aw: {all_wheels_on_track}, il: {is_left_of_center}, ')
           print(f'tw: {track_width:.2f}')
@@ -347,6 +347,7 @@ class Reward:
         if direction_diff > 30:
             if self.verbose:
                 self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
+                reward = float(1e-3)
                 print(f"r: {reward:.3f}")
                 print(f"STATE: {self.state}")
             return float(1e-3)
