@@ -294,8 +294,9 @@ class Reward:
 
         if is_offtrack == True:
             self.state = f"OFF TRACK {self.state}"
-            print(f"r: {1e-3:.3f}")
-            print(f"STATE: {self.state}")
+            if self.verbose == True:
+                print(f"r: {1e-3:.3f}")
+                print(f"STATE: {self.state}")
             return float(1e-3)
 
         # Get optimal [x, y, speed, time] for closest and second closest index
@@ -306,7 +307,7 @@ class Reward:
         if steps == 1 or self.first_racingpoint_index is None:
             self.first_racingpoint_index = closest_index
 
-        ################ REWARD AND PUNISHMENT ################
+        ################ REWARDS ################
 
         ## Define the default reward ##
         reward = self.BASE_REWARD
@@ -317,12 +318,10 @@ class Reward:
         reward += distance_reward * self.DISTANCE_MULTIPLIER
 
         ## Reward if speed is close to optimal speed ##
-
         speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track, steps)
         reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
-
         times_list = [row[3] for row in racing_track]
         projected_time = projected_time(self.first_racingpoint_index, closest_index, steps, times_list)
         try:
@@ -343,8 +342,6 @@ class Reward:
                 print(f"r: {reward:.3f}")
                 print(f"STATE: {self.state}")
             return float(1e-3)
-
-
             
         ## Incentive for finishing the lap in less steps ##
         if progress == 100:
