@@ -353,6 +353,7 @@ class Reward:
             optimals[0:2], optimals_second[0:2], [x, y], heading)
         if (direction_diff > 0 and steering_angle < 0) or (direction_diff < 0 and steering_angle > 0):
             distance_reward = distance_reward / 2
+            speed_reward = speed_reward / 2
             self.state = f"STEERING WRONG DIRECTION {self.state}"
         # if abs(direction_diff) > 30:
         #     if self.verbose:
