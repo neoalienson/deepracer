@@ -156,8 +156,6 @@ class Reward:
             direction_diff = abs(track_direction - heading)
             if direction_diff > 180:
                 direction_diff = 360 - direction_diff
-            
-            print(f"track_direction:{track_direction}, heading: {heading}")
 
             if abs(track_direction - heading) > 180:
                 if track_direction - heading > 0:
