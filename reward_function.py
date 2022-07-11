@@ -351,7 +351,7 @@ class Reward:
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
             optimals[0:2], optimals_second[0:2], [x, y], heading)
-        if (direction_diff > 0 and steering_angle < 0) or (direction_diff < 0 and steering_angle > 0):
+        if (direction_diff > 0 and steering_angle > 0) or (direction_diff < 0 and steering_angle < 0):
             distance_reward = distance_reward / 2
             speed_reward = speed_reward / 2
             self.state = f"STEERING WRONG DIRECTION {self.state}"
@@ -383,9 +383,9 @@ class Reward:
               print(f"dr:{distance_reward:.2f} {'*' * math.ceil(distance_reward*10)}{' ' * math.ceil(10-distance_reward*10)}", end =" ")
               print(f"di:{dist:.2f} {'*' * math.ceil(dist*100/7)}{' ' * math.ceil(10-dist*100/7)}", end =" ")
               print(f"dd: {direction_diff:5.1f}", end =" ")
-              _l = max(0, direction_diff / 3)
+              _l = min(max(0, direction_diff / 3), 30)
               print(f'{" " * math.ceil(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
-              _r = max(0, direction_diff / -3)
+              _r = min(max(0, direction_diff / -3), 30)
               print(f'{">" * math.ceil(_r)}{" " * math.ceil(10 - _r)}', end = ' ')            
               print(f"STATE: {self.state}")
             
