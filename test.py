@@ -28,21 +28,21 @@ class TestRewardFunction(unittest.TestCase):
      self.ro = Reward()
      
   def test_rt_issue_1(self):
-    self.ro.verbose = False
+    self.ro.verbose = True
     self.params = {
      'all_wheels_on_track': True,
-     'x': 6.33,
-     'y': 2.82,
+     'x': 5.7,
+     'y': 2.7,
      'distance_from_center': 0.05,
      'is_left_of_center': False,
-     'heading': 155.59,
+     'heading': -171.6,
      'progress': 5.87,
      'steps': 14,
      'speed': 2.21,
-     'steering_angle': -9.17,
+     'steering_angle': -13.2,
      'track_width':  0.76,
      'waypoints': self.waypoints,
-     'closest_waypoints': [42, 43],
+     'closest_waypoints': [47, 48],
      'is_offtrack': False
     }
     self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 330)

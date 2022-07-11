@@ -157,10 +157,16 @@ class Reward:
             if direction_diff > 180:
                 direction_diff = 360 - direction_diff
 
-            if track_direction - heading > 0:
-                return direction_diff * -1
+            if track_direction > 90 or track_direction < -90:
+                if track_direction - heading > 0:
+                    return direction_diff
+                else:
+                    return direction_diff * -1
             else:
-                return direction_diff 
+                if track_direction - heading > 0:
+                    return direction_diff * -1
+                else:
+                    return direction_diff 
 
         # Gives back indexes that lie between start and end index of a cyclical list 
         # (start index is included, end index is not)
