@@ -159,7 +159,7 @@ class Reward:
             
             print(f"track_direction:{track_direction}, heading: {heading}")
 
-            if (track_direction > 90 and heading > 90) or (track_direction < -90 and heading < -90):
+            if abs(track_direction - heading) > 180:
                 if track_direction - heading > 0:
                     return direction_diff
                 else:
