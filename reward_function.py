@@ -83,7 +83,6 @@ class Reward:
             return [closest_index, second_closest_index]
 
         def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):
-            
             # Calculate the distances between 2 closest racing points
             a = abs(dist_2_points(x1=closest_coords[0],
                                   x2=second_closest_coords[0],
@@ -145,12 +144,12 @@ class Reward:
                                                             second_closest_coords,
                                                             car_coords,
                                                             heading)
-
+            
             # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
             track_direction = math.atan2(
                 next_point[1] - prev_point[1], next_point[0] - prev_point[0])
 
-            # Convert to degree
+            # Convert to degree 
             track_direction = math.degrees(track_direction)
 
             # Calculate the difference between the track direction and the heading direction of the car
@@ -158,7 +157,10 @@ class Reward:
             if direction_diff > 180:
                 direction_diff = 360 - direction_diff
 
-            return direction_diff
+            if track_direction - heading > 0:
+                return direction_diff * -1
+            else:
+                return direction_diff 
 
         # Gives back indexes that lie between start and end index of a cyclical list 
         # (start index is included, end index is not)
@@ -297,7 +299,12 @@ class Reward:
         optimals_second = racing_track[second_closest_index]
 
         if self.verbose == True:
-          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sp: {speed:.1f}, sa: {steering_angle:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, tp: {optimals[3]:.1f}')
+          print(f'sp: {speed:.1f} {"=" * math.ceil(speed * 2.5)}{" " * math.ceil(10 - speed * 2.5)}', end = ' ')
+          _l = max(0, steering_angle / 3)
+          print(f'sa: {steering_angle:4.1f} {" " * math.ceil(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
+          _r = max(0, steering_angle / -3)
+          print(f'{">" * math.ceil(_r)}{" " * math.ceil(10 - _r)}', end = ' ')
+          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, tp: {optimals[3]:.1f}')
         if self.DEBUG == True:
           print(f'dc: {distance_from_center:.2f}, p: {progress:.2f}, st: {steps:3.0f}, cw: {closest_waypoints}, 1c: {closest_index}, 2c: {second_closest_index}, aw: {all_wheels_on_track}, il: {is_left_of_center}, ')
           print(f'tw: {track_width:.2f}')
@@ -308,8 +315,6 @@ class Reward:
                 print(f"r: {1e-3:.3f}")
                 print(f"STATE: {self.state}")
             return float(1e-3)
-
-
 
         # Save first racingpoint of episode for later
         if steps == 1 or self.first_racingpoint_index is None:
@@ -327,7 +332,7 @@ class Reward:
 
         ## Reward if speed is close to optimal speed ##
         speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track, steps)
-        reward += speed_reward * self.SPEED_MULTIPLIER * max(1e-3, 1 - (dist/(track_width*0.5)))
+        reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
         times_list = [row[3] for row in racing_track]
@@ -346,13 +351,16 @@ class Reward:
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
             optimals[0:2], optimals_second[0:2], [x, y], heading)
-        if direction_diff > 30:
-            if self.verbose:
-                self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
-                reward = float(1e-3)
-                print(f"r: {reward:.3f}")
-                print(f"STATE: {self.state}")
-            return float(1e-3)
+        if (direction_diff > 0 and steering_angle < 0) or (direction_diff < 0 and steering_angle > 0):
+            distance_reward = distance_reward / 2
+            self.state = f"STEERING WRONG DIRECTION {self.state}"
+        # if abs(direction_diff) > 30:
+        #     if self.verbose:
+        #         self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
+        #         reward = float(1e-3)
+        #         print(f"r: {reward:.3f}")
+        #         print(f"STATE: {self.state}")
+        #     return float(1e-3)
             
         ## Incentive for finishing the lap in less steps ##
         if progress == 100:
@@ -366,8 +374,19 @@ class Reward:
         if self.verbose == True:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
-            print(f"r: {reward:.3f}, fr: {finish_reward:.3f}, sr: {speed_reward:.3f}, dr: {distance_reward:.3f}, tr: {steps_reward:.3f}, ci: {closest_index}, dl: {dist:.3f},  dd: {direction_diff:.3f}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}, di: {dist:.2f}")
-            print(f"STATE: {self.state}")
+            if self.DEBUG == True:
+              print(f"tr: {steps_reward:.3f}, ci: {closest_index}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}")
+            if finish_reward <= 0:
+              print(f"r:{reward:.2f}", end =" ")
+              print(f"sr:{speed_reward:.2f} {'*' * math.ceil(speed_reward*10)}{' ' * math.ceil(20-distance_reward*10)}", end =" ")
+              print(f"dr:{distance_reward:.2f} {'*' * math.ceil(distance_reward*10)}{' ' * math.ceil(10-distance_reward*10)}", end =" ")
+              print(f"di:{dist:.2f} {'*' * math.ceil(dist*100/7)}{' ' * math.ceil(10-dist*100/7)}", end =" ")
+              print(f"dd: {direction_diff:5.1f}", end =" ")
+              _l = max(0, direction_diff / 3)
+              print(f'{" " * math.ceil(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
+              _r = max(0, direction_diff / -3)
+              print(f'{">" * math.ceil(_r)}{" " * math.ceil(10 - _r)}', end = ' ')            
+              print(f"STATE: {self.state}")
             
         return float(reward)
 
