@@ -322,17 +322,12 @@ class Reward:
 
         ################ REWARDS ################
 
-        ## Define the default reward ##
-        reward = self.BASE_REWARD
-
         ## Reward if car goes close to optimal racing line ##
         dist = dist_to_racing_line(optimals[0:2], optimals_second[0:2], [x, y])
         distance_reward = max(1e-3, 1 - (dist/(track_width*0.5)))
-        reward += distance_reward * self.DISTANCE_MULTIPLIER
 
         ## Reward if speed is close to optimal speed ##
         speed_reward = self.cal_speed_reward(optimals, speed, all_wheels_on_track, steps)
-        reward += speed_reward * self.SPEED_MULTIPLIER
 
         # Reward if less steps
         times_list = [row[3] for row in racing_track]
@@ -346,7 +341,6 @@ class Reward:
             steps_reward = 0
             steps_prediction = 0
             reward_prediction = 0
-        reward += steps_reward * self.STEP_MULTIPLIER
 
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
@@ -370,7 +364,10 @@ class Reward:
                       (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
         else:
             finish_reward = 0
-        reward += finish_reward
+        reward = self.BASE_REWARD + distance_reward * self.DISTANCE_MULTIPLIER \
+            + finish_reward \
+            + speed_reward * self.SPEED_MULTIPLIER \
+            + steps_reward * self.STEP_MULTIPLIER
 
         ####################### VERBOSE #######################
         if self.verbose == True:
