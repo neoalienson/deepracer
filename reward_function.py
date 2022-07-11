@@ -14,7 +14,7 @@ class Reward:
     ##################################################################
 
     #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
-    OVER_SPEED_REWARD = 0.2
+    OVER_SPEED_REWARD = 0.05
 
     ALLOW_WHEEL_OFF_TRACK = True
     SPEED_DIFF_NO_REWARD = 1.0
