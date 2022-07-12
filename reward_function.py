@@ -356,6 +356,8 @@ class Reward:
             speed_reward = 0
             steps_reward = 0
             self.state = f"STEERING WRONG DIRECTION {self.state}"
+        if abs(direction_diff > 10):
+            speed_reward = speed_reward / 3
         # if abs(direction_diff) > 30:
         #     if self.verbose:
         #         self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
@@ -373,7 +375,8 @@ class Reward:
         reward = self.BASE_REWARD + distance_reward * self.DISTANCE_MULTIPLIER \
             + finish_reward \
             + speed_reward * self.SPEED_MULTIPLIER \
-            + steps_reward * self.STEP_MULTIPLIER
+            + steps_reward * self.STEP_MULTIPLIER \
+            + min(15, 15 - abs(direction_diff) / 30 self.DIR_MULTIPLIER
 
         ####################### VERBOSE #######################
         if self.verbose == True:
@@ -383,7 +386,7 @@ class Reward:
               print(f"ci: {closest_index}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}")
             if finish_reward <= 0:
               print(f"r:{reward:.2f} {'*' * math.ceil(reward*5)}{' ' * math.floor(20-reward*5)}", end =" ")
-              print(f"sr:{speed_reward:.2f} {'*' * math.ceil(speed_reward*10)}{' ' * math.floor(20-distance_reward*10)}", end =" ")
+              print(f"sr:{speed_reward:.2f} {'*' * math.ceil(speed_reward*10)}{' ' * math.floor(20-speed_reward*10)}", end =" ")
               print(f"dr:{distance_reward:.2f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
               print(f"di:{dist:.2f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
               print(f"dd: {direction_diff:5.1f}", end =" ")
