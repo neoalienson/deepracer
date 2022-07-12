@@ -319,7 +319,8 @@ class Reward:
         optimals_second = racing_track[second_closest_index]
 
         if self.verbose == True:
-          print(f'sp: {speed:.1f} {"=" * math.ceil(speed * 2.5)}{" " * math.floor(10 - speed * 2.5)}', end = ' ')
+          speed_bar = (speed - 1.3) * 10.0 / (4.0 - 1.3)            
+          print(f'sp: {speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
           _l = max(0, steering_angle / 3)
           print(f'sa: {steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
           _r = max(0, steering_angle / -3)
@@ -397,8 +398,7 @@ class Reward:
               print(f"ci: {closest_index}, pt: {projected_time:.1f}, sp: {steps_prediction:.1f}, rp: {reward_prediction:.1f}")
             if finish_reward <= 0:
               print(f"r:{reward:.2f} {'*' * math.ceil(reward*5)}{' ' * math.floor(20-reward*5)}", end =" ")
-              speed_reward_bar = (speed_reward - 1.3) * 10.0 / (4.0 - 1.3)
-              print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward_bar)}{' ' * math.floor(10-speed_reward_bar)}", end =" ")
+              print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward*2.5)}{' ' * math.floor(10-speed_reward*2.5)}", end =" ")
               print(f"dr:{distance_reward:.1f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
               print(f"di:{dist:.1f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
               print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*10)}{' ' * math.floor(10-dir_reward*10)}", end =" ")
