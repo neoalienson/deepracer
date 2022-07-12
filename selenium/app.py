@@ -38,7 +38,7 @@ def newBrowser():
 
 
 # aws login
-def awsLogin(browser):
+def awsLogin(browser, aws_id, username, password):
 
     print("awsLogin")
 
@@ -91,7 +91,7 @@ def awsPromptLogin(browser):
 
 
 # submit to race
-def submit_to_race(browser):
+def submit_to_race(browser, aws_id, race_id, modelname):
 
     print("submit_to_race")
 
@@ -136,7 +136,7 @@ def submit_to_race(browser):
 
 
 # submit to race at multiple time
-def submit_to_race_multiple(browser, repeat_hours=9):
+def submit_to_race_multiple(browser, aws_id, race_id, modelname, repeat_hours=9):
 
     print("submit_to_race_multiple")
     # Calculate when to stop
@@ -206,13 +206,14 @@ def main():
     browser = newBrowser()
 
     # login to aws
-    awsLogin(browser)
+    awsLogin(browser, aws_id, username, password)
 
     # Submit the model to the summit race once
     # submit_to_race(browser, aws_id, race_id, modelname=modelname)
 
     # Submit the model to the summit race for multiple hours
-    submit_to_race_multiple(browser, repeat_hours=12)
+    submit_to_race_multiple(browser, aws_id, race_id,
+                            modelname=modelname, repeat_hours=12)
 
     # quit browser
     # browser.quit()
