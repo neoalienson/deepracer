@@ -1,7 +1,5 @@
 import math
 
-class Race:
-
 class Reward:
     # original 1
     BASE_REWARD = 1e-3
