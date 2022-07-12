@@ -400,7 +400,7 @@ class Reward:
               print(f"tr: {steps_reward:.1f} S: {self.state}")
         return reward
 
-reward_object = Reward(verbose=Tru) # add parameter verbose=True to get noisy output for testing
+reward_object = Reward(verbose=True) # add parameter verbose=True to get noisy output for testing
 
 def reward_function(params):
     return reward_object.reward_function(params)
