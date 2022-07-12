@@ -11,6 +11,7 @@ class Reward:
     STEP_MULTIPLIER = 1
     # original 1
     DISTANCE_MULTIPLIER = 1
+    DIR_MULTIPLIER = 1
     ##################################################################
 
     #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
@@ -38,7 +39,7 @@ class Reward:
         speed_diff_zero = optimals[2] - speed
         if speed_diff_zero > 0.5 and steps > 3:
             if self.verbose:
-                self.state = f"TOO SLOW: diff: {speed_diff_zero:.1f} {self.state}"
+                self.state = f"SLOW {speed_diff_zero:.1f} | {self.state}"
             return 0.0
 
         speed_diff = optimals[2] - speed
@@ -52,7 +53,7 @@ class Reward:
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
             if self.verbose:
-                self.state = f"OVER SPEED for {speed_diff:.2f} {self.state}"
+                self.state = f"OVER SPEED {speed_diff:.1f} | {self.state}"
 
         return speed_reward
 
@@ -316,7 +317,7 @@ class Reward:
           print(f'tw: {track_width:.2f}')
         
         if is_offtrack == True:
-            self.state = f"OFF TRACK {self.state}"
+            self.state = f"OFF TRACK | {self.state}"
             if self.verbose == True:
                 print(f"r: {1e-3:.3f}")
                 print(f"STATE: {self.state}")
@@ -355,9 +356,10 @@ class Reward:
             distance_reward = distance_reward / 2
             speed_reward = 0
             steps_reward = 0
-            self.state = f"STEERING WRONG DIRECTION {self.state}"
+            self.state = f"WRG DIR | {self.state}"
         if abs(direction_diff > 10):
             speed_reward = speed_reward / 3
+        dir_reward = min(15, 15 - abs(direction_diff)) / 30
         # if abs(direction_diff) > 30:
         #     if self.verbose:
         #         self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
@@ -376,7 +378,7 @@ class Reward:
             + finish_reward \
             + speed_reward * self.SPEED_MULTIPLIER \
             + steps_reward * self.STEP_MULTIPLIER \
-            + min(15, 15 - abs(direction_diff) / 30 self.DIR_MULTIPLIER
+            + dir_reward * self.DIR_MULTIPLIER
 
         ####################### VERBOSE #######################
         if self.verbose == True:
@@ -385,15 +387,16 @@ class Reward:
             if self.DEBUG == True:
               print(f"ci: {closest_index}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}")
             if finish_reward <= 0:
-              print(f"r:{reward:.2f} {'*' * math.ceil(reward*5)}{' ' * math.floor(20-reward*5)}", end =" ")
-              print(f"sr:{speed_reward:.2f} {'*' * math.ceil(speed_reward*10)}{' ' * math.floor(20-speed_reward*10)}", end =" ")
-              print(f"dr:{distance_reward:.2f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
-              print(f"di:{dist:.2f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
+              print(f"r:{reward:.2f} {'*' * math.ceil(reward*20)}{' ' * math.floor(20-reward*5)}", end =" ")
+              print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward*5)}{' ' * math.floor(10-speed_reward*5)}", end =" ")
+              print(f"dr:{distance_reward:.1f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
+              print(f"di:{dist:.1f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
+              print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*10)}{' ' * math.floor(10-dir_reward*10)}", end =" ")
               print(f"dd: {direction_diff:5.1f}", end =" ")
-              _l = min(max(0, direction_diff / 3), 30)
-              print(f'{" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
-              _r = min(max(0, direction_diff / -3), 30)
-              print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')            
+              _l = min(max(0, direction_diff / 6), 5)
+              print(f'{" " * math.floor(5 - _l)}{"<" * math.ceil(_l)}', end = '|')
+              _r = min(max(0, direction_diff / -6), 5)
+              print(f'{">" * math.ceil(_r)}{" " * math.floor(5 - _r)}', end = ' ')            
               print(f"tr: {steps_reward:.3f} STATE: {self.state}")
             
         return float(reward)
