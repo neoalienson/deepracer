@@ -11,7 +11,7 @@ class Reward:
     STEP_MULTIPLIER = 1
     # original 1
     DISTANCE_MULTIPLIER = 1
-    DIR_MULTIPLIER = 1
+    DIR_MULTIPLIER = 0.5
     ##################################################################
 
     #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
@@ -320,7 +320,7 @@ class Reward:
             self.state = f"OFF TRACK | {self.state}"
             if self.verbose == True:
                 print(f"r: {1e-3:.3f}")
-                print(f"STATE: {self.state}")
+                print(f"S: {self.state}")
             return float(1e-3)
 
         # Save first racingpoint of episode for later
@@ -359,13 +359,13 @@ class Reward:
             self.state = f"WRG DIR | {self.state}"
         if abs(direction_diff > 10):
             speed_reward = speed_reward / 3
-        dir_reward = min(15, 15 - abs(direction_diff)) / 30
+        dir_reward = min(15, 15 - min(15, abs(direction_diff))) / 15
         # if abs(direction_diff) > 30:
         #     if self.verbose:
         #         self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
         #         reward = float(1e-3)
         #         print(f"r: {reward:.3f}")
-        #         print(f"STATE: {self.state}")
+        #         print(f"S: {self.state}")
         #     return float(1e-3)
             
         ## Incentive for finishing the lap in less steps ##
@@ -385,23 +385,22 @@ class Reward:
             # Closest index, Distance to racing line, Distance reward (w/out multiple), Direction difference
             # Predicted time, Steps reward, Finish reward, Reward
             if self.DEBUG == True:
-              print(f"ci: {closest_index}, pt: {projected_time:.2f}, sp: {steps_prediction:.2f}, rp: {reward_prediction:.2f}")
+              print(f"ci: {closest_index}, pt: {projected_time:.1f}, sp: {steps_prediction:.1f}, rp: {reward_prediction:.1f}")
             if finish_reward <= 0:
-              print(f"r:{reward:.2f} {'*' * math.ceil(reward*20)}{' ' * math.floor(20-reward*5)}", end =" ")
+              print(f"r:{reward:.2f} {'*' * math.ceil(reward*5)}{' ' * math.floor(20-reward*5)}", end =" ")
               print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward*5)}{' ' * math.floor(10-speed_reward*5)}", end =" ")
               print(f"dr:{distance_reward:.1f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
               print(f"di:{dist:.1f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
-              print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*10)}{' ' * math.floor(10-dir_reward*10)}", end =" ")
+              print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*20)}{' ' * math.floor(10-dir_reward*20)}", end =" ")
               print(f"dd: {direction_diff:5.1f}", end =" ")
               _l = min(max(0, direction_diff / 6), 5)
               print(f'{" " * math.floor(5 - _l)}{"<" * math.ceil(_l)}', end = '|')
               _r = min(max(0, direction_diff / -6), 5)
               print(f'{">" * math.ceil(_r)}{" " * math.floor(5 - _r)}', end = ' ')            
-              print(f"tr: {steps_reward:.3f} STATE: {self.state}")
-            
-        return float(reward)
+              print(f"tr: {steps_reward:.1f} S: {self.state}")
+        return reward
 
-reward_object = Reward(verbose=True) # add parameter verbose=True to get noisy output for testing
+reward_object = Reward() # add parameter verbose=True to get noisy output for testing
 
 def reward_function(params):
     return reward_object.reward_function(params)

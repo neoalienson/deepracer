@@ -45,7 +45,9 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': [73, 74],
      'is_offtrack': False
     }
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 330)
+    r = self.ro.reward_function(self.params)
+    print(f'r*: {r}')
+    self.assertEqual(math.ceil(r * 1000), 330)
 
   # prevent breaking code from verbose 
   def test_verbose(self):
