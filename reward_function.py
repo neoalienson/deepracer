@@ -3,7 +3,7 @@ import math
 
 class Reward:
     # original 1
-    BASE_REWARD = 1
+    BASE_REWARD = 1e-3
     ################ Reward Weighting  ###############################
     # original 2
     SPEED_MULTIPLIER = 2
@@ -357,6 +357,8 @@ class Reward:
             speed_reward = 0
             steps_reward = 0
             self.state = f"WRG DIR | {self.state}"
+        else:
+            steps_reward = steps_reward + 1
         if abs(direction_diff > 10):
             speed_reward = speed_reward / 3
         dir_reward = min(15, 15 - min(15, abs(direction_diff))) / 15
