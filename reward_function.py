@@ -53,7 +53,7 @@ class Reward:
         if speed_diff < 0:
             speed_reward = speed_reward * self.OVER_SPEED_REWARD
             if self.verbose:
-                self.state = f"OVER SPEED {speed_diff:.1f} | {self.state}"
+                self.state = f"OVR SPD {speed_diff * -1:.1f} | {self.state}"
 
         return speed_reward
 
@@ -317,7 +317,7 @@ class Reward:
           print(f'tw: {track_width:.2f}')
         
         if is_offtrack == True:
-            self.state = f"OFF TRACK | {self.state}"
+            self.state = f"OFF TRK | {self.state}"
             if self.verbose == True:
                 print(f"r: {1e-3:.3f}")
                 print(f"S: {self.state}")
