@@ -8,7 +8,7 @@ class Reward:
     # original 2
     SPEED_MULTIPLIER = 2
     # original 1
-    STEP_MULTIPLIER = 1
+    STEP_MULTIPLIER = 0
     # original 1
     DISTANCE_MULTIPLIER = 1
     DIR_MULTIPLIER = 0.5
@@ -311,10 +311,10 @@ class Reward:
           print(f'sa: {steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
           _r = max(0, steering_angle / -3)
           print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, ot: {is_offtrack}, os: {optimals[2]:.2f}, tp: {optimals[3]:.1f}')
+          print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, os: {optimals[2]:.2f}, tp: {optimals[3]:.1f}')
         if self.DEBUG == True:
           print(f'dc: {distance_from_center:.2f}, p: {progress:.2f}, st: {steps:3.0f}, cw: {closest_waypoints}, 1c: {closest_index}, 2c: {second_closest_index}, aw: {all_wheels_on_track}, il: {is_left_of_center}, ')
-          print(f'tw: {track_width:.2f}')
+          print(f'ot: {is_offtrack}, tw: {track_width:.2f}')
         
         if is_offtrack == True:
             self.state = f"OFF TRK | {self.state}"
