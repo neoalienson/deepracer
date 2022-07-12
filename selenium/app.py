@@ -11,6 +11,15 @@ import itertools
 import random
 import datetime
 
+hasPromptLogin = True
+aws_id = ""
+username = ""
+password = ""
+prompt_email = ""
+prompt_password = ""
+race_id = ""
+modelname = ""
+
 
 # Returns a new browser
 def newBrowser():
@@ -29,7 +38,7 @@ def newBrowser():
 
 
 # aws login
-def awsLogin(browser, aws_id, username, password):
+def awsLogin(browser):
 
     print("awsLogin")
 
@@ -53,9 +62,36 @@ def awsLogin(browser, aws_id, username, password):
     print(
         f"Successfully logged in to AWS account number {aws_id} with username {username}")
 
+    if hasPromptLogin:
+        awsPromptLogin(browser)
+
+
+def awsPromptLogin(browser):
+
+    print("awsPromptLogin")
+
+    # url = "https://us-east-1.console.aws.amazon.com/deepracer/home#welcome"
+    url = "https://us-east-1.console.aws.amazon.com/deepracer/home?region=us-east-1#competition/arn%3Aaws%3Adeepracer%3A%3A{aws_id}%3Aleaderboard%2F{race_id}/submitModel"
+    url = url.format(aws_id=aws_id, race_id=race_id)
+    browser.get(url)
+    browser.refresh()
+    time.sleep(1)
+
+    emailInput = browser.find_element("name", "email")
+    passwordInput = browser.find_element("name", "password")
+
+    emailInput.send_keys(prompt_email)
+    passwordInput.send_keys(prompt_password)
+    # Sign In
+    signInButton = browser.find_element(By.XPATH,
+                                        '//button[@type="submit"]/*[text()="Sign in"]')
+    signInButton.click()
+
+    time.sleep(5)
+
 
 # submit to race
-def submit_to_race(browser, aws_id, race_id, modelname):
+def submit_to_race(browser):
 
     print("submit_to_race")
 
@@ -100,7 +136,7 @@ def submit_to_race(browser, aws_id, race_id, modelname):
 
 
 # submit to race at multiple time
-def submit_to_race_multiple(browser, aws_id, race_id, modelname, repeat_hours=9):
+def submit_to_race_multiple(browser, repeat_hours=9):
 
     print("submit_to_race_multiple")
     # Calculate when to stop
@@ -133,21 +169,50 @@ def submit_to_race_multiple(browser, aws_id, race_id, modelname, repeat_hours=9)
     print(f"Submitted number of models to the race: {count_submits}")
 
 
-def main():
-    # open browser
-    browser = newBrowser()
+def getEnvironmentVariable():
     # get environment variable
     with open("env.txt", 'r') as f:
-        [aws_id, username, password, race_id, modelname] = f.read().splitlines()
+        [env_hasPromptLogin, env_aws_id, env_username, env_password, env_prompt_email, env_prompt_password,
+            env_race_id, env_modelname] = f.read().splitlines()
+
+    global hasPromptLogin
+    hasPromptLogin = env_hasPromptLogin == 'True'
+
+    global aws_id
+    aws_id = env_aws_id
+
+    global username
+    username = env_username
+
+    global password
+    password = env_password
+
+    global prompt_email
+    prompt_email = env_prompt_email
+
+    global prompt_password
+    prompt_password = env_prompt_password
+
+    global race_id
+    race_id = env_race_id
+
+    global modelname
+    modelname = env_modelname
+
+
+def main():
+    getEnvironmentVariable()
+    # open browser
+    browser = newBrowser()
 
     # login to aws
-    awsLogin(browser, aws_id, username, password)
+    awsLogin(browser)
 
     # Submit the model to the summit race once
     # submit_to_race(browser, aws_id, race_id, modelname=modelname)
 
     # Submit the model to the summit race for multiple hours
-    submit_to_race_multiple(browser, aws_id, race_id, modelname=modelname, repeat_hours=12)
+    submit_to_race_multiple(browser, repeat_hours=12)
 
     # quit browser
     # browser.quit()
