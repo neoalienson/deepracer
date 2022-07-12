@@ -391,7 +391,7 @@ class Reward:
               print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward*5)}{' ' * math.floor(10-speed_reward*5)}", end =" ")
               print(f"dr:{distance_reward:.1f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")
               print(f"di:{dist:.1f} {'*' * math.ceil(dist*100/7)}{' ' * math.floor(10-dist*100/7)}", end =" ")
-              print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*20)}{' ' * math.floor(10-dir_reward*20)}", end =" ")
+              print(f"ir:{dir_reward:.1f} {'*' * math.ceil(dir_reward*10)}{' ' * math.floor(10-dir_reward*10)}", end =" ")
               print(f"dd: {direction_diff:5.1f}", end =" ")
               _l = min(max(0, direction_diff / 6), 5)
               print(f'{" " * math.floor(5 - _l)}{"<" * math.ceil(_l)}', end = '|')
