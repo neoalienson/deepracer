@@ -3,7 +3,7 @@ import math
 
 class Reward:
     # original 1
-    BASE_REWARD = 1e-3
+    BASE_REWARD = 1
     ################ Reward Weighting  ###############################
     # original 2
     SPEED_MULTIPLIER = 2
