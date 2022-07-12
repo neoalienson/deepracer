@@ -47,7 +47,7 @@ class TestRewardFunction(unittest.TestCase):
     }
     r = self.ro.reward_function(self.params)
     print(f'r*: {r}')
-    self.assertEqual(math.ceil(r * 1000), 330)
+    self.assertEqual(math.ceil(r * 1000), 2)
 
   # prevent breaking code from verbose 
   def test_verbose(self):
@@ -61,16 +61,16 @@ class TestRewardFunction(unittest.TestCase):
 
   def test_all_wheels_on_track(self):
     self.params['all_wheels_on_track']= False
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 589)
 
   def test_slow_after_reset(self):
     self.params['speed']= 0.0
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 589)
 
   def test_slow_after_4_steps(self):
     self.params['speed']= 0.0
     self.params['steps']= 4
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 412)
+    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 589)
 
   def test_speed_reward(self):
     self.assertEqual(self.ro.cal_speed_reward(self.raceline_point, 2, True, self.steps), 1)  

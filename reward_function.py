@@ -1,5 +1,6 @@
 import math
 
+class Race:
 
 class Reward:
     # original 1
@@ -15,13 +16,13 @@ class Reward:
     ##################################################################
 
     #### 1 for no reduction when over speed, 0 for no reward when overspeeding ###############
-    OVER_SPEED_REWARD = 0.05
+    OVER_SPEED_REWARD = 1
 
     ALLOW_WHEEL_OFF_TRACK = True
     SPEED_DIFF_NO_REWARD = 1.0
     REWARD_PER_STEP_FOR_FASTEST_TIME = 0.1 
     REWARD_FOR_FASTEST_TIME = 800 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
-    STANDARD_TIME = 11.5  # seconds (time that is easily done by model)
+    STANDARD_TIME = 11  # seconds (time that is easily done by model)
     FASTEST_TIME = 7.5  # seconds (best time of 1st place on the track)
 
     DEBUG = False
@@ -178,7 +179,7 @@ class Reward:
             return [index % array_len for index in range(start, end)]
 
         # Calculate how long car would take for entire lap, if it continued like it did until now
-        def projected_time(first_index, closest_index, step_count, times_list):
+        def cal_projected_time(first_index, closest_index, step_count, times_list):
             # Calculate how much time has passed since start
             current_actual_time = (step_count-1) / 15
 
@@ -199,6 +200,20 @@ class Reward:
 
             return projected_time
 
+        def cal_step_prediction(projected_time):
+            return projected_time * 15 + 1
+        
+        def cal_reward_prediction(steps_prediction):
+            return max(1e-3, (-self.REWARD_PER_STEP_FOR_FASTEST_TIME * (self.FASTEST_TIME) /
+                (self.STANDARD_TIME - self.FASTEST_TIME))*(steps_prediction - (self.STANDARD_TIME*15+1)))
+
+        def cal_steps_reward(projected_time, steps_prediction, reward_prediction):
+            try:
+                steps_reward = min(self.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
+            except:
+                steps_reward = 0
+                reward_prediction = 0
+            return steps_reward
 
         #################### RACING LINE ######################
 
@@ -338,16 +353,10 @@ class Reward:
 
         # Reward if less steps
         times_list = [row[3] for row in racing_track]
-        projected_time = projected_time(self.first_racingpoint_index, closest_index, steps, times_list)
-        try:
-            steps_prediction = projected_time * 15 + 1
-            reward_prediction = max(1e-3, (-self.REWARD_PER_STEP_FOR_FASTEST_TIME * (self.FASTEST_TIME) /
-                                           (self.STANDARD_TIME - self.FASTEST_TIME))*(steps_prediction - (self.STANDARD_TIME*15+1)))
-            steps_reward = min(self.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
-        except:
-            steps_reward = 0
-            steps_prediction = 0
-            reward_prediction = 0
+        projected_time = cal_projected_time(self.first_racingpoint_index, closest_index, steps, times_list)
+        steps_prediction = cal_step_prediction(projected_time)
+        reward_prediction = cal_reward_prediction(steps_prediction)
+        steps_reward = cal_steps_reward(projected_time, steps_prediction, reward_prediction)
 
         # Zero reward if obviously wrong direction (e.g. spin)
         direction_diff = racing_direction_diff(
@@ -362,13 +371,12 @@ class Reward:
         if abs(direction_diff > 10):
             speed_reward = speed_reward / 3
         dir_reward = min(15, 15 - min(15, abs(direction_diff))) / 15
-        # if abs(direction_diff) > 30:
-        #     if self.verbose:
-        #         self.state = f"WRONG DIRECTION: {direction_diff:.1f} {self.state}"
-        #         reward = float(1e-3)
-        #         print(f"r: {reward:.3f}")
-        #         print(f"S: {self.state}")
-        #     return float(1e-3)
+
+        if abs(direction_diff) > 30:
+            if self.verbose:
+                self.state = f"SPIN: {direction_diff:.1f} {self.state}"
+                print(f"r: {float(1e-3):.1f} S: {self.state}")
+                return float(1e-3)
             
         ## Incentive for finishing the lap in less steps ##
         if progress == 100:
@@ -376,6 +384,7 @@ class Reward:
                       (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
         else:
             finish_reward = 0
+        
         reward = self.BASE_REWARD + distance_reward * self.DISTANCE_MULTIPLIER \
             + finish_reward \
             + speed_reward * self.SPEED_MULTIPLIER \
