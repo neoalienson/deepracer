@@ -144,10 +144,10 @@ def main():
     awsLogin(browser, aws_id, username, password)
 
     # Submit the model to the summit race once
-    submit_to_race(browser, aws_id, race_id, modelname=modelname)
+    # submit_to_race(browser, aws_id, race_id, modelname=modelname)
 
     # Submit the model to the summit race for multiple hours
-    # submit_to_race_multiple(browser, aws_id, race_id, modelname=modelname, repeat_hours=12)
+    submit_to_race_multiple(browser, aws_id, race_id, modelname=modelname, repeat_hours=12)
 
     # quit browser
     # browser.quit()
