@@ -161,7 +161,7 @@ def submit_to_race(browser):
         submitted = False
         while re_press_submit > 0 and not submitted:
             try:
-                print(f"enterRaceButton.click()")
+                print(f"enterRaceButton.click(), still have {re_press_submit} times to re-try.")
                 enterRaceButton.click()
                 time.sleep(2)
                 if check_exists_by_xpath(browser, '//*[contains(text(), "%s")]' % "This submission is already queued to race"):
@@ -176,8 +176,10 @@ def submit_to_race(browser):
             except:
                 # If click failed, means that submit was successful and we got re-routed to Event starting screen
                 re_press_submit = 0
-
-        time.sleep(10)
+        time.sleep(5)
+        # return submitted succes for this time
+        return submitted
+        
     except NoSuchElementException as ex:
         raise ex
 
@@ -197,10 +199,16 @@ def submit_to_race_multiple(browser, repeat_hours=9):
     while datetime.datetime.now() < datetime_stop:
         try:
             # Submit model to summit
-            submit_to_race(browser)
-            # Wait for 10 minutes before attempting submit again
-            print(f"sleep 10 mins.")
-            time.sleep(10*60)
+            success = submit_to_race(browser)
+            minuteToWaitNextTime = 10
+            # if not success, only wait 2 minutes later to re-try again
+            if not success:
+                minuteToWaitNextTime = 2
+            
+            # Wait for n minutes before attempting submit again
+            print(f"sleep {minuteToWaitNextTime} mins.")
+            time.sleep(minuteToWaitNextTime*60)
+
         except NoSuchElementException as ex:
             # If failed to submit, wait for 2 minutes and try again
             count_fails += 1
