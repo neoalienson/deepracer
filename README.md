@@ -1,13 +1,10 @@
-# Info
+# Track 
+DR_ENABLE_DOMAIN_RANDOMIZATION is set to true to simulate real environment
+
+# Model Parameter
 Right Steering -30
-
 Left Steering 30
-
 Max Speed 4
-
-SIM_TRACE_LOG: episode, step, x-coordinate, y-coordinate, heading, steering_angle, 
-  speed, action_taken, reward, job_completed, all_wheels_on_track, progress,
-  closest_waypoint_index, track_length, time.time()
 
 # Using loganalysis
 * x jupyter-lab --no-browser

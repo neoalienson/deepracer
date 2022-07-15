@@ -1,5 +1,4 @@
-#from reward_function import reward_function
-from reward_function import Reward
+from reward_function import *
 import unittest
 import math
 
@@ -23,75 +22,13 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': [0, 1],
      'is_offtrack': False
      }
-     self.ro = Reward(verbose=True)
-     
-  def test_rt_issue_1(self):
-    self.ro.verbose = False
-    self.params = {
-     'all_wheels_on_track': True,
-     'x': 6.33,
-     'y': 2.82,
-     'distance_from_center': 0.05,
-     'is_left_of_center': False,
-     'heading': 155.59,
-     'progress': 5.87,
-     'steps': 14,
-     'speed': 2.21,
-     'steering_angle': -9.17,
-     'track_width':  0.76,
-     'waypoints': self.waypoints,
-     'closest_waypoints': [42, 43],
-     'is_offtrack': False
-    }
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 1042)
 
   def test_basic(self):
-    self.ro.verbose = False
-    self.assertTrue(self.ro.reward_function(self.params))
-
-  def test_verbose(self):
-    self.ro.verbose = True
-    self.assertTrue(self.ro.reward_function(self.params))
-
-  def test_offtrack(self):
-    self.params['is_offtrack']= True
-    self.assertEqual(self.ro.reward_function(self.params), 1e-3)
-
-  def test_all_wheels_on_track(self):
-    self.ro.verbose = False
-    self.params['all_wheels_on_track']= False
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
-
-  def test_slow_after_reset(self):
-    self.ro.verbose = False
-    self.params['speed']= 0.0
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
-
-  def test_slow_after_4_steps(self):
-    self.ro.verbose = False
-    self.params['speed']= 0.0
-    self.params['steps']= 4
-    self.assertEqual(math.ceil(self.ro.reward_function(self.params) * 1000), 257)
-
-  def test_speed_reward(self):
-    self.ro.verbose = False
-    self.ro.SPEED_REDUCTION = 0
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.63, True), 0)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 4, True), 1)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3, True), 0)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 3.8, True), 0.9216)    
-    self.ro.SPEED_REDUCTION = 0.5
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 0.82, True), 0)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 2, True), 1)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.0, True), 0)
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 4.0, 0.0368], 1.9, True), 0.9801)
-
-  def test_over_speed_reward(self):
-    self.ro.verbose = False
-    self.ro.SPEED_REDUCTION = 0
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True), 0)
-    self.ro.OVER_SPEED_REWARD = 1
-    self.assertEqual(self.ro.cal_speed_reward([3.21372, 0.69357, 2.0, 0.0368], 2.1, True), 0.9801)
+    self.assertTrue(reward_function(self.params))
+  
+  def test_print(self):
+    setup(True)
+    print_params()
 
 if __name__ == '__main__':
     unittest.main()
