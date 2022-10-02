@@ -28,7 +28,7 @@ def reward_function(params, verbose=True):
       DISTANCE_MULTIPLIER = 1
       STEERING_MULTIPLIER = 0
       SPEED_MULTIPLIER    = 0
-      PROGRESS_MULTIPLIER = 0.75
+      PROGRESS_MULTIPLIER = 0.5
 
     setup(verbose)
     read_params(params)
