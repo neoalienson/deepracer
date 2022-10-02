@@ -25,10 +25,10 @@ class TestRewardFunction(unittest.TestCase):
 
   def test_basic(self):
     self.assertTrue(reward_function(self.params))
-  
-  def test_print(self):
-    setup(True)
-    print_params()
+
+  def test_off_track(self):
+    self.params['all_wheels_on_track'] = False
+    self.assertEqual(reward_function(self.params), 0.001)
 
 if __name__ == '__main__':
     unittest.main()
