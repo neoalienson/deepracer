@@ -28,6 +28,7 @@ def reward_function(params, verbose=True):
       DISTANCE_MULTIPLIER = 1
       STEERING_MULTIPLIER = 0
       SPEED_MULTIPLIER    = 0
+      PROGRESS_MULTIPLIER = 0.75
 
     setup(verbose)
     read_params(params)
@@ -130,6 +131,10 @@ def reward_function(params, verbose=True):
    
     speed_reward = params["speed"] / 8
     reward += speed_reward * SPEED_MULTIPLIER
+
+    # progress reward
+    progress_reward = PROGRESS_MULTIPLIER
+    reward += progress_reward
 
     if all_wheels_on_track == False:
         reward = 0.001
