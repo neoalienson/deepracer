@@ -4,28 +4,20 @@ def reward_function(params, verbose=False):
 
     abs_steering = abs(STEERING_ANGLE) # Only need the absolute steering angle
 
-    # Calculate 3 marks that are farther and father away from the center line
-    marker_1 = 0.1 * TRACK_WIDTH
-    marker_2 = 0.25 * TRACK_WIDTH
-    marker_3 = 0.5 * TRACK_WIDTH
+    # Steering threshold
+    ABS_STEERING_THRESHOLD = 5
 
-    # Give higher reward if the car is closer to center line and vice versa
-    if DISTANCE_FROM_CENTER <= marker_1:
-        reward = 1.0
-    elif DISTANCE_FROM_CENTER <= marker_2:
-        reward = 0.5
-    elif DISTANCE_FROM_CENTER <= marker_3:
-        reward = 0.1
-    else:
-        reward = 1e-3  # likely crashed/ close to off track
+    reward = 0.001
 
-    # Steering penality threshold, change the number based on your action space setting
-    ABS_STEERING_THRESHOLD = 15 
+    if params["all_wheels_on_track"]:
+        reward += 1
 
-    # Penalize reward if the car is steering too much
-    if abs_steering > ABS_STEERING_THRESHOLD:
-        reward *= 0.8
-
+    # reward if steer less
+    if abs_steering < ABS_STEERING_THRESHOLD:
+        reward += 1
+   
+    reward += ( params["speed"] / 8 )
+   
     return float(reward)
 
 def setup(verbose):
