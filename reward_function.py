@@ -23,13 +23,19 @@ def reward_function(params, verbose=True):
 
     ABS_STEERING_THRESHOLD = 5
     
-    # first 40 iteration
-    STAGE = 1
+    # first 45 iteration
+    STAGE = 2
     
     if STAGE == 1:
       DISTANCE_MULTIPLIER = 1
       STEERING_MULTIPLIER = 0
       SPEED_MULTIPLIER    = 0
+      PROGRESS_MULTIPLIER = 0.5
+
+    if STAGE == 2:
+      DISTANCE_MULTIPLIER = 1
+      STEERING_MULTIPLIER = 0
+      SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
 
     setup(verbose)
