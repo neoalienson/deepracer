@@ -27,7 +27,7 @@ def reward_function(params, verbose=True):
     FASTEST_TIME = 7.3  # seconds (best time of 1st place on the track)
 
     # first 45 iteration
-    STAGE = 1
+    STAGE = 2
     
     if STAGE == 1:
       DISTANCE_MULTIPLIER = 2
