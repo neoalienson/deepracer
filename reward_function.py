@@ -22,7 +22,6 @@ def reward_function(params, verbose=True):
     global closest_waypoints
     global is_offtrack
 
-    ABS_STEERING_THRESHOLD = 5
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
     STANDARD_TIME = 11.0  # seconds (time that is easily done by model)
     FASTEST_TIME = 7.3  # seconds (best time of 1st place on the track)
@@ -31,18 +30,18 @@ def reward_function(params, verbose=True):
     STAGE = 1
     
     if STAGE == 1:
-      DISTANCE_MULTIPLIER = 1
-      STEERING_MULTIPLIER = 0
-      SPEED_MULTIPLIER    = 0
+      DISTANCE_MULTIPLIER = 2
+      STEERING_MULTIPLIER = 1
+      SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
-      STEP_MULTIPLIER     = 1
+      STEP_MULTIPLIER     = 0
 
     if STAGE == 2:
-      DISTANCE_MULTIPLIER = 1
-      STEERING_MULTIPLIER = 0
-      SPEED_MULTIPLIER    = 0
+      DISTANCE_MULTIPLIER = 2
+      STEERING_MULTIPLIER = 1
+      SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
-      STEP_MULTIPLIER     = 1
+      STEP_MULTIPLIER     = 0
 
     setup(verbose)
     read_params(params)
@@ -127,8 +126,7 @@ def reward_function(params, verbose=True):
             racing_track, [x, y])
 
     # Save first racingpoint of episode for later
-    if steps == 1:
-        first_racingpoint_index = closest_index
+    first_racingpoint_index = closest_index
 
     # Get optimal [x, y, speed, time] for closest and second closest index
     optimals = racing_track[closest_index]
@@ -142,11 +140,18 @@ def reward_function(params, verbose=True):
     reward += distance_reward * DISTANCE_MULTIPLIER
  
     # reward if steer less
-    if abs(steering_angle) < ABS_STEERING_THRESHOLD:
+    if abs(steering_angle) < 20:
+        reward += 0.2 * STEERING_MULTIPLIER
+    if abs(steering_angle) < 10:
+        reward += 0.2 * STEERING_MULTIPLIER
+    if abs(steering_angle) < 5:
+        reward += 0.2 * STEERING_MULTIPLIER
+    if abs(steering_angle) < 3:
+        reward += 0.2 * STEERING_MULTIPLIER
+    if abs(steering_angle) < 1:
         reward += 0.2 * STEERING_MULTIPLIER
 
-         # Reward if less steps
-
+    # Reward if less steps
     times_list = [row[3] for row in racing_track]
     projected_time = cal_projected_time(first_racingpoint_index, closest_index, steps, times_list)
     try:
@@ -158,7 +163,7 @@ def reward_function(params, verbose=True):
         steps_reward = 0
     reward += steps_reward * STEP_MULTIPLIER
 
-    speed_reward = params["speed"] / 8
+    speed_reward = (speed - 1.3) / (4.0 - 1.3)
     reward += speed_reward * SPEED_MULTIPLIER
 
     # progress reward
@@ -220,7 +225,7 @@ def print_params():
     print(f'sa: {steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sr: {steps_reward:.1f}')
+    print(f'x: {x:.1f}, y: {y:.1f}, h: {heading:.1f}, sr: {steps_reward:.1f}, p: {progress:.2f}, st: {steps:3.0f}')
     if DEBUG == True:
         print(f'dc: {DISTANCE_FROM_CENTER:.2f}, p: {progress:.2f}, st: {steps:3.0f}, cw: {closest_waypoints}, 1c: {closest_index}, 2c: {second_closest_index}, aw: {all_wheels_on_track}, il: {is_left_of_center}, ')
         print(f'ot: {is_offtrack}, tw: {TRACK_WIDTH:.2f}')
