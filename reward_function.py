@@ -34,14 +34,14 @@ def reward_function(params, verbose=True):
       STEERING_MULTIPLIER = 1
       SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
-      STEP_MULTIPLIER     = 0
+      STEP_MULTIPLIER     = 1
 
     if STAGE == 2:
       DISTANCE_MULTIPLIER = 2
       STEERING_MULTIPLIER = 1
       SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
-      STEP_MULTIPLIER     = 0
+      STEP_MULTIPLIER     = 1
 
     setup(verbose)
     read_params(params)
