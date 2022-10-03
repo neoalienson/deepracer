@@ -127,7 +127,7 @@ def reward_function(params, verbose=True):
             racing_track, [x, y])
 
     # Save first racingpoint of episode for later
-    if steps == 1 or first_racingpoint_index is None:
+    if steps == 1:
         first_racingpoint_index = closest_index
 
     # Get optimal [x, y, speed, time] for closest and second closest index
