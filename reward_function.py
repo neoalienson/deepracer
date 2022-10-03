@@ -1,3 +1,5 @@
+import math
+
 def reward_function(params, verbose=True):
     global VERBOSE
     global DEBUG
@@ -21,7 +23,7 @@ def reward_function(params, verbose=True):
 
     ABS_STEERING_THRESHOLD = 5
     
-    # first 20 iteration
+    # first 40 iteration
     STAGE = 1
     
     if STAGE == 1:
@@ -139,6 +141,14 @@ def reward_function(params, verbose=True):
     if all_wheels_on_track == False:
         reward = 0.001
 
+    # Zero reward if obviously wrong direction (e.g. spin)
+    direction_diff = racing_direction_diff(
+            optimals[0:2], optimals_second[0:2], [x, y], heading)
+    if direction_diff > 30:
+        reward = 0.001
+        if verbose:
+            print(f"WRONG DIRECTION: {direction_diff:.1f}")
+
     print_params()
 
     return float(reward)
@@ -236,6 +246,56 @@ def closest_2_racing_points_index(racing_coords, car_coords):
                 min(distances_no_closest))
 
             return [closest_index, second_closest_index]
+
+        # Calculate which one of the closest racing points is the next one and which one the previous one
+def next_prev_racing_point(closest_coords, second_closest_coords, car_coords, heading):
+
+            # Virtually set the car more into the heading direction
+            heading_vector = [math.cos(math.radians(
+                heading)), math.sin(math.radians(heading))]
+            new_car_coords = [car_coords[0]+heading_vector[0],
+                              car_coords[1]+heading_vector[1]]
+
+            # Calculate distance from new car coords to 2 closest racing points
+            distance_closest_coords_new = dist_2_points(x1=new_car_coords[0],
+                                                        x2=closest_coords[0],
+                                                        y1=new_car_coords[1],
+                                                        y2=closest_coords[1])
+            distance_second_closest_coords_new = dist_2_points(x1=new_car_coords[0],
+                                                               x2=second_closest_coords[0],
+                                                               y1=new_car_coords[1],
+                                                               y2=second_closest_coords[1])
+
+            if distance_closest_coords_new <= distance_second_closest_coords_new:
+                next_point_coords = closest_coords
+                prev_point_coords = second_closest_coords
+            else:
+                next_point_coords = second_closest_coords
+                prev_point_coords = closest_coords
+
+            return [next_point_coords, prev_point_coords]
+
+def racing_direction_diff(closest_coords, second_closest_coords, car_coords, heading):
+
+            # Calculate the direction of the center line based on the closest waypoints
+            next_point, prev_point = next_prev_racing_point(closest_coords,
+                                                            second_closest_coords,
+                                                            car_coords,
+                                                            heading)
+
+            # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+            track_direction = math.atan2(
+                next_point[1] - prev_point[1], next_point[0] - prev_point[0])
+
+            # Convert to degree
+            track_direction = math.degrees(track_direction)
+
+            # Calculate the difference between the track direction and the heading direction of the car
+            direction_diff = abs(track_direction - heading)
+            if direction_diff > 180:
+                direction_diff = 360 - direction_diff
+
+            return direction_diff
 
 def read_params(params):
     global all_wheels_on_track
