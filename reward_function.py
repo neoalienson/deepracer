@@ -146,7 +146,7 @@ def reward_function(params):
     # Convert to degree
     G.route_direction = math.degrees(G.route_direction)
     # Calculate the difference between the track direction and the heading direction of the car
-    if P.heading < 0:
+    if (P.heading > 0 and G.route_direction < 0) or (P.heading < 0 and G.route_direction > 0):
         G.direction_diff = G.route_direction + P.heading
     else:
         G.direction_diff = G.route_direction - P.heading
