@@ -22,3 +22,7 @@ Max Speed 4
 # AWS commands
 * aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 ls s3://bucket
 * aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 rm --recursive s3://bucket/rl-deepracer-1
+
+# References
+* https://blog.gofynd.com/how-we-broke-into-the-top-1-of-the-aws-deepracer-virtual-circuit-573ba46c275
+* https://medium.com/axel-springer-tech/how-to-win-aws-deepracer-ce15454f594a
