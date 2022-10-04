@@ -177,8 +177,22 @@ class TestRewardFunction(unittest.TestCase):
     self.assertNotEqual(STATE.prev_speed, None)
 
   def test_verbose(self):
-    SETTINGS.verbose = False
+    SETTINGS.verbose = True
     reward_function(self.params)
+
+  def test_debug(self):
+    SETTINGS.verbose = True
+    SETTINGS.debug = True
+    reward_function(self.params)
+
+  def test_distance_reward(self):
+    SETTINGS.verbose = False
+    SETTINGS.debug = False
+    reward_function(self.params)
+    self.assertTrue(get_distance_reward() > 0.9)
+    self.params['y'] = 1
+    reward_function(self.params)
+    self.assertEqual(get_distance_reward(), 1e-3)
 
 if __name__ == '__main__':
     unittest.main()

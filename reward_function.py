@@ -116,6 +116,8 @@ class G:
     route_direction = None
     sigma_speed = None
     normalized_distance_from_route = None
+    dist_from_racinig_line = None
+    intermediate_progress = [0] * 71
 
 def reward_function(params):
     read_params(params)
@@ -131,22 +133,14 @@ def reward_function(params):
     G.optimals = TRACK_INFO.racing_line[closest_index]
     G.optimals_second = TRACK_INFO.racing_line[second_closest_index]
 
-    ## Reward if car goes close to optimal racing line ##
-    dist = dist_to_racing_line(G.optimals[0:2], G.optimals_second[0:2], [P.x, P.y])
-    G.normalized_distance_from_route = dist
-    REWARDS.distance = max(1e-3, 1 - (dist/(P.track_width * 0.5)))
-
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians between target and current vehicle position
     G.route_direction = math.atan2(G.optimals_second[1] - P.y, G.optimals_second[0] - P.x) 
     # Convert to degree
     G.route_direction = math.degrees(G.route_direction)
     # Calculate the difference between the track direction and the heading direction of the car
     G.direction_diff = G.route_direction - P.heading
-    #Check that the direction_diff is in valid range
-    #Then compute the heading reward
-    REWARDS.heading = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
-    if abs(G.direction_diff) <= 20:
-        REWARDS.heading = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
+
+    G.dist_from_racing_line = dist_to_racing_line(G.optimals[0:2], G.optimals_second[0:2], [P.x, P.y])
 
     # Reinitialize previous parameters if it is a new episode
     if STATE.prev_steps is None or P.steps < STATE.prev_steps:
@@ -188,6 +182,9 @@ def reward_function(params):
     G.sigma_speed = abs(TRACK_INFO.MAX_SPEED - TRACK_INFO.MIN_SPEED)/6.0
     OPTIMAL.speed = G.optimals_second[2]
 
+    ## Reward if car goes close to optimal racing line ##
+    # G.normalized_distance_from_route = G.dist_from_racinig_line
+    REWARDS.heading = get_heading_reward()
     REWARDS.distance = get_distance_reward()
     REWARDS.speed = get_speed_reward()
 
@@ -196,9 +193,26 @@ def reward_function(params):
     STATE.prev_steering_angle = P.steering_angle
     STATE.prev_direction_diff = G.direction_diff
     STATE.prev_steps = P.steps
-    STATE.prev_normalized_distance_from_route = dist
+    STATE.prev_normalized_distance_from_route = G.dist_from_racinig_line
 
     REWARDS.immediate = get_immediate_reward()
+
+    # Reward for making steady progress
+    REWARDS.progress = 10 * P.progress / P.steps
+    if P.steps <= 5:
+        REWARDS.progress = 1 #ignore progress in the first 5 steps
+    # Bonus that the agent gets for completing every 10 percent of track
+    # Is exponential in the progress / steps. 
+    # exponent increases with an increase in fraction of lap completed
+    intermediate_progress_bonus = 0
+    pi = int(P.progress//10)
+    if pi != 0 and G.intermediate_progress[ pi ] == 0:
+        if pi==10: # 100% track completion
+            intermediate_progress_bonus = REWARDS.progress ** 14
+        else:
+            intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
+    G.intermediate_progress[ pi ] = intermediate_progress_bonus
+
     REWARDS.final = get_final_reward()
     print_params()
 
@@ -206,16 +220,22 @@ def reward_function(params):
 
 def get_distance_reward():
     #Reward reducing distance to the race line
-    distance_reduction_bonus = 1
-    if STATE.prev_normalized_distance_from_route is not None and STATE.prev_normalized_distance_from_route > G.normalized_distance_from_route:
-        if abs(G.normalized_distance_from_route) > 0:
-            distance_reduction_bonus = min( abs( STATE.prev_normalized_distance_from_route / G.normalized_distance_from_route ), 2)
+    # distance_reduction_bonus = 1
+    # if STATE.prev_normalized_distance_from_route is not None and STATE.prev_normalized_distance_from_route > G.normalized_distance_from_route:
+    #     if abs(G.normalized_distance_from_route) > 0:
+    #         distance_reduction_bonus = min( abs( STATE.prev_normalized_distance_from_route / G.normalized_distance_from_route ), 2)
     
-    return 1
+    # return 1
     #distance reward is value of the standard normal scaled back to 1. 
     #Hence the 1/2*pi*sigma term is cancelled out
 #    sigma=abs(normalized_route_distance_from_inner_border / 4) 
 #  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
+    return max(1e-3, 1 - (G.dist_from_racing_line/(P.track_width * 0.5)))
+
+def get_heading_reward():
+    if abs(G.direction_diff) <= 20:
+        return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
+    return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
 
 def get_speed_reward():
     return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
@@ -225,7 +245,7 @@ def get_final_reward():
         return 0.001
         if SETTINGS.verbose:
             print(f"OFF TRACK")
-    return max(REWARDS.immediate, 1e-3)
+    return max(REWARDS.immediate + REWARDS.progress, 1e-3)
 
 def get_immediate_reward():
     # Zero reward if obviously wrong direction (e.g. spin)
@@ -279,7 +299,7 @@ def print_state():
     if not SETTINGS.verbose:
         return
     if STATE.prev_speed is not None:
-      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f} dist:{STATE.prev_normalized_distance_from_route:.1f}")
+      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f}")
     else:
       print("empty state")
 
@@ -293,13 +313,14 @@ def print_params():
     if not SETTINGS.verbose:
         return    
     import math
-    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(REWARDS.final*5)}{' ' * math.floor(20-REWARDS.final*5)}", end =" ")
+    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(REWARDS.final*1)}{' ' * math.floor(20-REWARDS.final*1)}", end =" ")
     print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(REWARDS.speed*2.5)}{' ' * math.floor(10-REWARDS.speed*2.5)}", end =" ")
     print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*10)}{' ' * math.floor(10-REWARDS.distance*10)}", end =" ")
+    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
+    print(f"pr:{REWARDS.progress:.1f}", end =" ")
     speed_bar = (P.speed - 1.3) * 10.0 / (4.0 - 1.3)            
     print(f'sp: {P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
     _l = max(0, P.steering_angle / 3)
-    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
     print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
@@ -386,48 +407,6 @@ def next_prev_racing_point(closest_coords, second_closest_coords, car_coords, he
 
             return [next_point_coords, prev_point_coords]
 
-def racing_direction_diff(closest_coords, second_closest_coords, car_coords, heading):
-
-            # Calculate the direction of the center line based on the closest waypoints
-            next_point, prev_point = next_prev_racing_point(closest_coords,
-                                                            second_closest_coords,
-                                                            car_coords,
-                                                            heading)
-
-            # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
-            track_direction = math.atan2(
-                next_point[1] - prev_point[1], next_point[0] - prev_point[0])
-
-            # Convert to degree
-            track_direction = math.degrees(track_direction)
-
-            # Calculate the difference between the track direction and the heading direction of the car
-            direction_diff = abs(track_direction - heading)
-            if direction_diff > 180:
-                direction_diff = 360 - direction_diff
-
-            return direction_diff
-# Calculate how long car would take for entire lap, if it continued like it did until now
-def cal_projected_time(first_index, closest_index, step_count, times_list):
-            # Calculate how much time has passed since start
-            current_actual_time = (step_count-1) / 15
-
-            # Calculate which indexes were already passed
-            indexes_traveled = indexes_cyclical(first_index, closest_index, len(times_list))
-
-            # Calculate how much time should have passed if car would have followed optimals
-            current_expected_time = sum([times_list[i] for i in indexes_traveled])
-
-            # Calculate how long one entire lap takes if car follows optimals
-            total_expected_time = sum(times_list)
-
-            # Calculate how long car would take for entire lap, if it continued like it did until now
-            try:
-                projected_time = (current_actual_time/current_expected_time) * total_expected_time
-            except:
-                projected_time = 9999
-
-            return projected_time
 
 def closest_2_racing_points_index(racing_coords, car_coords):
             # Calculate all distances to racing points
