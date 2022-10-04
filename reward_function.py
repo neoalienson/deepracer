@@ -135,7 +135,7 @@ def reward_function(params):
     G.optimals_second = TRACK_INFO.racing_line[second_closest_index]
 
     if max(P.closest_waypoints[0], P.closest_waypoints[1]) >= len(TRACK_INFO.racing_line):
-        G.next_index = max(P.closest_waypoints[0], P.closest_waypoints[1]) + 1
+        G.next_index = min(max(P.closest_waypoints[0], P.closest_waypoints[1]) + 1, 69)
     else:
         G.next_index = 0
 
@@ -263,7 +263,7 @@ def get_immediate_reward():
     if abs(G.direction_diff) > 30:
         if SETTINGS.verbose:
             print(f"FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
-        return 0
+        # return 0
  
     # G.direction_diff = G.route_direction - P.heading
 
@@ -332,7 +332,7 @@ def print_params():
     print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:3.0f}, dd:{G.direction_diff:.1f}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:3.0f}, dd:{G.direction_diff:.1f}, ni:{G.next_index}')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
