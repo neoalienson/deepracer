@@ -29,31 +29,9 @@ class TestRewardFunction(unittest.TestCase):
   def test_direction_difference_exceed_30(self):
     SETTINGS.verbose = False
     SETTINGS.debug = False
-    self.params['heading'] = 31
+    self.params = {'all_wheels_on_track':False,'x':0.1402956865016356,'y':4.045675685819531,'distance_from_center':0.6306292205255717,'is_left_of_center':False,'heading':-154.9588545914767,'progress':7.9108419101282745,'steps':20.0,'speed':3.0,'steering_angle':-11.3,'track_width':0.7593030450788312,'waypoints':self.waypoints ,'closest_waypoints':[86, 87],'is_offtrack':True}
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 0)
-    self.params['heading'] = -31
-    reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
-    self.params = {
-     'all_wheels_on_track': True,
-     'x': 3.5150,
-     'y': 1.1121,
-     'distance_from_center': 0.0,
-     'is_left_of_center': True,
-     'heading': 23.6121,
-     'progress': 7.5716,
-     'steps': 17,
-     'speed': 2.20,
-     'steering_angle': -9.10,
-     'track_width':  0.76,
-     'waypoints': self.waypoints,
-     'closest_waypoints': [3, 4],
-     'is_offtrack': False
-    }
-    reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)   
-    self.params = {'all_wheels_on_track': True,'x':3.581908668534143,'y':0.7061544192970396,'distance_from_center': 0.022723794497893267,'is_left_of_center': True,'heading': 2.6794661556423125,'progress': 2.9486724322394275,'steps': 9.0,'speed': 1.4,'steering_angle': 0.2,'track_width':  0.762000205779111,'waypoints':self.waypoints ,'closest_waypoints':[3, 4],'is_offtrack': False}
  
 
   def test_direction_difference_less_30(self):
@@ -64,7 +42,6 @@ class TestRewardFunction(unittest.TestCase):
     self.params['heading'] = self.params['heading'] - 30
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 0)
-
 
   # The speed of the car is 1.5 m/s slower than its optimal speed on a straight section. Essentially the car is going too slow on straight sections.
   def test_too_slow(self):

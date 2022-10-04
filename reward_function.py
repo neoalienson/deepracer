@@ -265,28 +265,28 @@ def get_immediate_reward():
     # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
     if abs(G.direction_diff) > 30:
         if SETTINGS.verbose:
-            print(f"FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
-        # return 0
+            print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
+        return 0
 
     # prohibit left turn between waypoints
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
-            print(f"SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
+            print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 0
 
     if is_left_turn_section() and P.steering_angle < 0:
         if SETTINGS.verbose:
-            print(f"SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
+            print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 0
 
     if P.speed - OPTIMAL.speed > 1:
         if SETTINGS.verbose:
-            print(f"TOO FAST")
+            print(f"!!! TOO FAST")
         return 0
 
     if OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
-            print(f"TOO SLOW")
+            print(f"!!! TOO SLOW")
         return 0
 
     return max((REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ), 1e-3)
