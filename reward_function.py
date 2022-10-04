@@ -27,28 +27,28 @@ def reward_function(params, verbose=True):
     FASTEST_TIME = 7.3  # seconds (best time of 1st place on the track)
 
     # first 45 iteration
-    STAGE = 2
+    STAGE = 1
     
     if STAGE == 1:
-      DISTANCE_MULTIPLIER = 2
-      STEERING_MULTIPLIER = 1
-      SPEED_MULTIPLIER    = 1
+      DISTANCE_MULTIPLIER = 1
+      STEERING_MULTIPLIER = 0.5
+      SPEED_MULTIPLIER    = 0
       PROGRESS_MULTIPLIER = 0.5
       STEP_MULTIPLIER     = 1
 
     if STAGE == 2:
-      DISTANCE_MULTIPLIER = 2
-      STEERING_MULTIPLIER = 1
+      DISTANCE_MULTIPLIER = 1
+      STEERING_MULTIPLIER = 0.5
       SPEED_MULTIPLIER    = 1
       PROGRESS_MULTIPLIER = 0.5
       STEP_MULTIPLIER     = 1
 
     setup(verbose)
     read_params(params)
-    #################### RACING LINE ######################
 
-        # Optimal racing line for the Spain track
-        # Each row: [x,y,speed,timeFromPreviousPoint]
+    #################### RACING LINE ######################
+    # Optimal racing line for the Spain track
+    # Each row: [x,y,speed,timeFromPreviousPoint]
     racing_track = [
         [2.89961, 0.63419, 3.71852, 0.07995],
         [3.17179, 0.61467, 4.0, 0.06822],
@@ -172,6 +172,8 @@ def reward_function(params, verbose=True):
 
     if all_wheels_on_track == False:
         reward = 0.001
+        if verbose:
+            print(f"OFF TRACK")
 
     # Zero reward if obviously wrong direction (e.g. spin)
     direction_diff = racing_direction_diff(

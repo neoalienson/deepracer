@@ -18,9 +18,9 @@
       {"steering_angle":   1.2,"speed": 2.9,"index": 15},
       {"steering_angle":  13.0,"speed": 2.9,"index": 16},
       {"steering_angle": -11.3,"speed": 3.0,"index": 17},
-      {"steering_angle":  -1.1,"speed": 3.4,"index": 18 }, 
+      {"steering_angle":  -1.1,"speed": 3.4,"index": 18},
       {"steering_angle":  11.7,"speed": 3.4,"index": 19},
-      {"steering_angle":  -0.3,"speed": 3.9,"index": 20 }
+      {"steering_angle":  -0.3,"speed": 3.9,"index": 20}
    ],
    "sensor": [
       "FRONT_FACING_CAMERA"
