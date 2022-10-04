@@ -118,6 +118,7 @@ class G:
     normalized_distance_from_route = None
     dist_from_racinig_line = None
     intermediate_progress = [0] * 71
+    next_index = None
 
 def reward_function(params):
     read_params(params)
@@ -133,8 +134,15 @@ def reward_function(params):
     G.optimals = TRACK_INFO.racing_line[closest_index]
     G.optimals_second = TRACK_INFO.racing_line[second_closest_index]
 
+    if max(P.closest_waypoints[0], P.closest_waypoints[1]) >= len(TRACK_INFO.racing_line):
+        G.next_index = max(P.closest_waypoints[0], P.closest_waypoints[1]) + 1
+    else:
+        G.next_index = 0
+
+    next_point_coords = TRACK_INFO.racing_line[G.next_index]
+
     # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians between target and current vehicle position
-    G.route_direction = math.atan2(G.optimals_second[1] - P.y, G.optimals_second[0] - P.x) 
+    G.route_direction = math.atan2(next_point_coords[1] - P.y, next_point_coords[0] - P.x) 
     # Convert to degree
     G.route_direction = math.degrees(G.route_direction)
     # Calculate the difference between the track direction and the heading direction of the car
@@ -265,7 +273,6 @@ def get_immediate_reward():
             print(f"SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 0
 
-
     if is_left_turn_section() and P.steering_angle < 0:
         if SETTINGS.verbose:
             print(f"SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
@@ -325,12 +332,12 @@ def print_params():
     print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:3.0f}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:3.0f}, dd:{G.direction_diff:.1f}')
     if SETTINGS.debug:
-        print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
-        print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}')
+        print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
+        print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
 
-    print(f"{{'all_wheels_on_track': {P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center': {P.distance_from_center},'is_left_of_center': {P.is_left_of_center},'heading': {P.heading},'progress': {P.progress},'steps': {P.steps},'speed': {P.speed},'steering_angle': {P.steering_angle},'track_width':  {P.track_width},'waypoints':self.waypoints ,'closest_waypoints':{P.closest_waypoints},'is_offtrack': {P.is_offtrack}}}")
+    print(f"{{'all_wheels_on_track':{P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center':{P.distance_from_center},'is_left_of_center':{P.is_left_of_center},'heading':{P.heading},'progress':{P.progress},'steps':{P.steps},'speed':{P.speed},'steering_angle':{P.steering_angle},'track_width':{P.track_width},'waypoints':self.waypoints ,'closest_waypoints':{P.closest_waypoints},'is_offtrack':{P.is_offtrack}}}")
      
 def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):    
         # Calculate the distances between 2 closest racing points
@@ -361,55 +368,6 @@ def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):
 
 def dist_2_points(x1, x2, y1, y2):
             return abs(abs(x1-x2)**2 + abs(y1-y2)**2)**0.5
-
-def closest_2_racing_points_index(racing_coords, car_coords):
-
-            # Calculate all distances to racing points
-            distances = []
-            for i in range(len(racing_coords)):
-                distance = dist_2_points(x1=racing_coords[i][0], x2=car_coords[0],
-                                         y1=racing_coords[i][1], y2=car_coords[1])
-                distances.append(distance)
-
-            # Get index of the closest racing point
-            closest_index = distances.index(min(distances))
-
-            # Get index of the second closest racing point
-            distances_no_closest = distances.copy()
-            distances_no_closest[closest_index] = 999
-            second_closest_index = distances_no_closest.index(
-                min(distances_no_closest))
-
-            return [closest_index, second_closest_index]
-
-        # Calculate which one of the closest racing points is the next one and which one the previous one
-def next_prev_racing_point(closest_coords, second_closest_coords, car_coords, heading):
-
-            # Virtually set the car more into the heading direction
-            heading_vector = [math.cos(math.radians(
-                heading)), math.sin(math.radians(heading))]
-            new_car_coords = [car_coords[0]+heading_vector[0],
-                              car_coords[1]+heading_vector[1]]
-
-            # Calculate distance from new car coords to 2 closest racing points
-            distance_closest_coords_new = dist_2_points(x1=new_car_coords[0],
-                                                        x2=closest_coords[0],
-                                                        y1=new_car_coords[1],
-                                                        y2=closest_coords[1])
-            distance_second_closest_coords_new = dist_2_points(x1=new_car_coords[0],
-                                                               x2=second_closest_coords[0],
-                                                               y1=new_car_coords[1],
-                                                               y2=second_closest_coords[1])
-
-            if distance_closest_coords_new <= distance_second_closest_coords_new:
-                next_point_coords = closest_coords
-                prev_point_coords = second_closest_coords
-            else:
-                next_point_coords = second_closest_coords
-                prev_point_coords = closest_coords
-
-            return [next_point_coords, prev_point_coords]
-
 
 def closest_2_racing_points_index(racing_coords, car_coords):
             # Calculate all distances to racing points

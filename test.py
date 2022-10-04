@@ -13,7 +13,7 @@ class TestRewardFunction(unittest.TestCase):
      'y': 0.60513,
      'distance_from_center': 0.0,
      'is_left_of_center': True,
-     'heading': 0,
+     'heading': 174.5,
      'progress': 0.7920,
      'steps': 1.0,
      'speed': 4,
@@ -51,22 +51,17 @@ class TestRewardFunction(unittest.TestCase):
      'closest_waypoints': [3, 4],
      'is_offtrack': False
     }
-    SETTINGS.verbose = True
-    SETTINGS.debug = True
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)    
-# FAR AWAY FROM DIRECTION: -96.8
-# r:4.45 *****                sr:0.0 *          dr:0.0 *          hr:0.0 *          pr:4.5 sp: 2.2 ====       sa:  -9.1           |>>>>       x:3.5, y:1.1, h:23.6, sr:0.0, dr:0.0, hr:0.0, pr:4.5, os:  4
-# SIM_TRACE_LOG: episode, step, x-coordinate, y-coordinate, heading, steering_angle, speed, action_taken, reward, 
-# job_completed, all_wheels_on_track, progress,  closest_waypoint_index, track_length, time.time()
-# SIM_TRACE_LOG:39,17,3.5150,1.1121,23.6121,-9.10,2.20,10,4.4539,False,False,7.5716,3,17.71,109.891,in_progress,0.00
+    self.assertEqual(REWARDS.immediate, 0)   
+    self.params = {'all_wheels_on_track': True,'x':3.581908668534143,'y':0.7061544192970396,'distance_from_center': 0.022723794497893267,'is_left_of_center': True,'heading': 2.6794661556423125,'progress': 2.9486724322394275,'steps': 9.0,'speed': 1.4,'steering_angle': 0.2,'track_width':  0.762000205779111,'waypoints':self.waypoints ,'closest_waypoints':[3, 4],'is_offtrack': False}
+ 
 
   def test_direction_difference_less_30(self):
     SETTINGS.verbose = False
     SETTINGS.debug = False
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 0)
-    self.params['heading'] = -30
+    self.params['heading'] = self.params['heading'] - 30
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 0)
 
@@ -97,7 +92,7 @@ class TestRewardFunction(unittest.TestCase):
   def test_correct_direction(self):
     SETTINGS.verbose = False
     SETTINGS.debug = False
-    self.params['heading'] = -10
+    self.params['heading'] = self.params['heading'] - 10
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 0)
 
