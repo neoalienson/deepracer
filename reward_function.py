@@ -146,7 +146,10 @@ def reward_function(params):
     # Convert to degree
     G.route_direction = math.degrees(G.route_direction)
     # Calculate the difference between the track direction and the heading direction of the car
-    G.direction_diff = G.route_direction - P.heading
+    if P.heading < 0:
+        G.direction_diff = G.route_direction + P.heading
+    else:
+        G.direction_diff = G.route_direction - P.heading
 
     G.dist_from_racing_line = dist_to_racing_line(G.optimals[0:2], G.optimals_second[0:2], [P.x, P.y])
 
@@ -264,8 +267,6 @@ def get_immediate_reward():
         if SETTINGS.verbose:
             print(f"FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
         # return 0
- 
-    # G.direction_diff = G.route_direction - P.heading
 
     # prohibit left turn between waypoints
     if is_right_turn_section() and P.steering_angle > 0:
@@ -332,7 +333,7 @@ def print_params():
     print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, ni:{G.next_index}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
