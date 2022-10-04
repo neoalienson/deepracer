@@ -35,6 +35,31 @@ class TestRewardFunction(unittest.TestCase):
     self.params['heading'] = -31
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 0)
+    self.params = {
+     'all_wheels_on_track': True,
+     'x': 3.5150,
+     'y': 1.1121,
+     'distance_from_center': 0.0,
+     'is_left_of_center': True,
+     'heading': 23.6121,
+     'progress': 7.5716,
+     'steps': 17,
+     'speed': 2.20,
+     'steering_angle': -9.10,
+     'track_width':  0.76,
+     'waypoints': self.waypoints,
+     'closest_waypoints': [3, 4],
+     'is_offtrack': False
+    }
+    SETTINGS.verbose = True
+    SETTINGS.debug = True
+    reward_function(self.params)
+    self.assertEqual(REWARDS.immediate, 0)    
+# FAR AWAY FROM DIRECTION: -96.8
+# r:4.45 *****                sr:0.0 *          dr:0.0 *          hr:0.0 *          pr:4.5 sp: 2.2 ====       sa:  -9.1           |>>>>       x:3.5, y:1.1, h:23.6, sr:0.0, dr:0.0, hr:0.0, pr:4.5, os:  4
+# SIM_TRACE_LOG: episode, step, x-coordinate, y-coordinate, heading, steering_angle, speed, action_taken, reward, 
+# job_completed, all_wheels_on_track, progress,  closest_waypoint_index, track_length, time.time()
+# SIM_TRACE_LOG:39,17,3.5150,1.1121,23.6121,-9.10,2.20,10,4.4539,False,False,7.5716,3,17.71,109.891,in_progress,0.00
 
   def test_direction_difference_less_30(self):
     SETTINGS.verbose = False
@@ -44,6 +69,7 @@ class TestRewardFunction(unittest.TestCase):
     self.params['heading'] = -30
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 0)
+
 
   # The speed of the car is 1.5 m/s slower than its optimal speed on a straight section. Essentially the car is going too slow on straight sections.
   def test_too_slow(self):
@@ -178,12 +204,12 @@ class TestRewardFunction(unittest.TestCase):
 
   def test_verbose(self):
     SETTINGS.verbose = True
-    reward_function(self.params)
+    # reward_function(self.params)
 
   def test_debug(self):
     SETTINGS.verbose = True
     SETTINGS.debug = True
-    reward_function(self.params)
+    # reward_function(self.params)
 
   def test_distance_reward(self):
     SETTINGS.verbose = False

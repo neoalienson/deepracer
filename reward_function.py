@@ -154,8 +154,8 @@ def reward_function(params):
             has_speed_dropped = True
 
     #Penalize slowing down without good reason on straight portions
-    if has_speed_dropped and not is_turn_upcoming: 
-        speed_maintain_bonus = min( P.speed / STATE.prev_speed, 1 )
+    # if has_speed_dropped and not is_turn_upcoming: 
+    #     speed_maintain_bonus = min( P.speed / STATE.prev_speed, 1 )
     #Penalize making the heading direction worse
     heading_decrease_bonus = 0
     if STATE.prev_direction_diff is not None and G.direction_diff != 0:
@@ -177,7 +177,8 @@ def reward_function(params):
         if STATE.prev_direction_diff is not None and abs(STATE.prev_direction_diff) > abs(G.direction_diff):
             steering_angle_maintain_bonus *= 2
 
-    print_state()
+    if SETTINGS.debug:
+        print_state()
 
     G.sigma_speed = abs(TRACK_INFO.MAX_SPEED - TRACK_INFO.MIN_SPEED)/6.0
     OPTIMAL.speed = G.optimals_second[2]
@@ -329,6 +330,8 @@ def print_params():
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}')
 
+    print(f"{{'all_wheels_on_track': {P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center': {P.distance_from_center},'is_left_of_center': {P.is_left_of_center},'heading': {P.heading},'progress': {P.progress},'steps': {P.steps},'speed': {P.speed},'steering_angle': {P.steering_angle},'track_width':  {P.track_width},'waypoints': {P.waypoints},'closest_waypoints':{P.closest_waypoints},'is_offtrack': {P.is_offtrack}}}")
+     
 def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):    
         # Calculate the distances between 2 closest racing points
         a = abs(dist_2_points(x1=closest_coords[0],
