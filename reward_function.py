@@ -295,7 +295,7 @@ def get_immediate_reward():
         return 0
 
     # avoid sharp turn if previous speed is fast
-    if STATE.speed > 2.3 and abs(P.steering_angle > 20)
+    if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
         return 0
