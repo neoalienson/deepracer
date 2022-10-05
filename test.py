@@ -13,7 +13,7 @@ class TestRewardFunction(unittest.TestCase):
      'y': 0.60513,
      'distance_from_center': 0.0,
      'is_left_of_center': True,
-     'heading': 174.5,
+     'heading': 0,
      'progress': 0.7920,
      'steps': 1.0,
      'speed': 4,
@@ -74,6 +74,7 @@ class TestRewardFunction(unittest.TestCase):
     self.assertNotEqual(REWARDS.immediate, 0)
 
   def test_allow_at_least_one_wheel_on_track(self):
+    SETTINGS.verbose = False
     self.params['all_wheels_on_track'] = False
     self.assertNotEqual(reward_function(self.params), 0.001)
 
@@ -81,6 +82,7 @@ class TestRewardFunction(unittest.TestCase):
     SETTINGS.verbose = False
     SETTINGS.debug = False
     self.params['closest_waypoints'] = [47, 48]
+    self.params['heading'] = 112.1
     for steering_angle in [-10, 0, 10]:
       self.params['steering_angle'] = steering_angle
       reward_function(self.params)
@@ -90,6 +92,7 @@ class TestRewardFunction(unittest.TestCase):
     SETTINGS.verbose = False
     SETTINGS.debug = False
     self.params['closest_waypoints'] = [26, 27]
+    self.params['heading'] = 43
     for steering_angle in [-10, 0]:
       self.params['steering_angle'] = steering_angle
       reward_function(self.params)

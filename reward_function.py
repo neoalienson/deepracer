@@ -119,6 +119,7 @@ class G:
     dist_from_racinig_line = None
     intermediate_progress = [0] * 71
     next_index = None
+    intermediate_progress_bonus = None
 
 def reward_function(params):
     read_params(params)
@@ -216,14 +217,14 @@ def reward_function(params):
     # Bonus that the agent gets for completing every 10 percent of track
     # Is exponential in the progress / steps. 
     # exponent increases with an increase in fraction of lap completed
-    intermediate_progress_bonus = 0
+    G.intermediate_progress_bonus = 0
     pi = int(P.progress//10)
     if pi != 0 and G.intermediate_progress[ pi ] == 0:
         if pi==10: # 100% track completion
-            intermediate_progress_bonus = REWARDS.progress ** 14
+            G.intermediate_progress_bonus = REWARDS.progress ** 14
         else:
-            intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
-    G.intermediate_progress[ pi ] = intermediate_progress_bonus
+            G.intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
+    G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
 
     REWARDS.final = get_final_reward()
     print_params()
@@ -257,7 +258,7 @@ def get_final_reward():
         return 0.001
         if SETTINGS.verbose:
             print(f"OFF TRACK")
-    return max(REWARDS.immediate + REWARDS.progress, 1e-3)
+    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
 
 def get_immediate_reward():
     # Zero reward if obviously wrong direction (e.g. spin)
@@ -288,7 +289,7 @@ def get_immediate_reward():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 0
-
+        
     return max((REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ), 1e-3)
 
 def is_right_turn_section():
@@ -333,7 +334,7 @@ def print_params():
     print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
