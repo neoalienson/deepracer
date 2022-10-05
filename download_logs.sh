@@ -1,6 +1,5 @@
 #!/bin/bash
-rm ../data/logs/training-simtrace/*.csv
-rm ../data/logs/training-simtrace/*.dsv
+rm ../data/logs/training-simtrace/*
 
 pushd ../data/logs/training-simtrace
 aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 sync s3://bucket/rl-deepracer-sagemaker/training-simtrace/  .
