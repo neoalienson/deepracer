@@ -211,20 +211,30 @@ def reward_function(params):
     REWARDS.immediate = get_immediate_reward()
 
     # Reward for making steady progress
-    REWARDS.progress = 10 * P.progress / P.steps
-    if P.steps <= 5:
-        REWARDS.progress = 1 #ignore progress in the first 5 steps
-    # Bonus that the agent gets for completing every 10 percent of track
-    # Is exponential in the progress / steps. 
-    # exponent increases with an increase in fraction of lap completed
     G.intermediate_progress_bonus = 0
-    pi = int(P.progress//10)
-    if pi != 0 and G.intermediate_progress[ pi ] == 0:
-        if pi==10: # 100% track completion
-            G.intermediate_progress_bonus = REWARDS.progress ** 14
-        else:
-            G.intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
-    G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
+    REWARDS.progress = 0
+    # REWARDS.progress = 10 * P.progress / P.steps
+    # if P.steps <= 5:
+    #     REWARDS.progress = 1 #ignore progress in the first 5 steps
+    # # Bonus that the agent gets for completing every 10 percent of track
+    # # Is exponential in the progress / steps. 
+    # # exponent increases with an increase in fraction of lap completed
+    # pi = int(P.progress//10)
+    # if pi != 0 and G.intermediate_progress[ pi ] == 0:
+    #     if pi==10: # 100% track completion
+    #         G.intermediate_progress_bonus = REWARDS.progress ** 14
+    #     else:
+    #         G.intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
+    # G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
+    times_list = [row[3] for row in TRACK_INFO.racing_line]
+    projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
+    try:
+        steps_prediction = projected_time * 15 + 1
+        reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (SETTINGS.FASTEST_TIME) /
+                                       (SETTINGS.STANDARD_TIME - SETTINGS.FASTEST_TIME))*(steps_prediction - (SETTINGS.STANDARD_TIME*15+1)))
+        REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
+    except:
+        REWARDS.progress = 0
 
     REWARDS.final = get_final_reward()
     print_params()
@@ -289,7 +299,7 @@ def get_immediate_reward():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 0
-        
+
     return max((REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ), 1e-3)
 
 def is_right_turn_section():
@@ -323,7 +333,8 @@ def print_params():
     if not SETTINGS.verbose:
         return    
     import math
-    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(REWARDS.final*1)}{' ' * math.floor(20-REWARDS.final*1)}", end =" ")
+    capped_final = min(REWARDS.final, 20)
+    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(20-capped_final*1)}", end =" ")
     print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(REWARDS.speed*2.5)}{' ' * math.floor(10-REWARDS.speed*2.5)}", end =" ")
     print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*10)}{' ' * math.floor(10-REWARDS.distance*10)}", end =" ")
     print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
@@ -397,6 +408,28 @@ def indexes_cyclical(start, end, array_len):
                 end += array_len
 
             return [index % array_len for index in range(start, end)]
+
+# Calculate how long car would take for entire lap, if it continued like it did until now
+def get_projected_time(first_index, closest_index, step_count, times_list):
+            # Calculate how much time has passed since start
+            current_actual_time = (step_count-1) / 15
+
+            # Calculate which indexes were already passed
+            indexes_traveled = indexes_cyclical(first_index, closest_index, len(times_list))
+
+            # Calculate how much time should have passed if car would have followed optimals
+            current_expected_time = sum([times_list[i] for i in indexes_traveled])
+
+            # Calculate how long one entire lap takes if car follows optimals
+            total_expected_time = sum(times_list)
+
+            # Calculate how long car would take for entire lap, if it continued like it did until now
+            try:
+                projected_time = (current_actual_time/current_expected_time) * total_expected_time
+            except:
+                projected_time = 9999
+
+            return projected_time
 
 class STATE:
     prev_speed = None
