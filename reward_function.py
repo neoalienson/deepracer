@@ -281,24 +281,24 @@ def get_immediate_reward():
     if abs(G.direction_diff) > 60:
         if SETTINGS.verbose:
             print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
-        return 0
+        return lc / 10
 
     # prohibit left turn between waypoints
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
-        return 0
+        return lc / 10
 
     if is_left_turn_section() and P.steering_angle < 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
-        return 0
+        return lc / 10
 
     # avoid sharp turn if previous speed is fast
     if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
-        return 0
+        return lc / 10
 
     if CONFIGS.STAGE > 1 and OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
