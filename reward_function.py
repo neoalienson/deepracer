@@ -268,7 +268,8 @@ def get_final_reward():
         return 0.001
         if SETTINGS.verbose:
             print(f"OFF TRACK")
-    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
+#    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
+    return max(REWARDS.immediate + REWARDS.progress, 1e-3)
 
 def get_immediate_reward():
     # Zero reward if obviously wrong direction (e.g. spin)
@@ -340,9 +341,9 @@ def print_params():
     print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
     print(f"pr:{REWARDS.progress:.1f}", end =" ")
     speed_bar = (P.speed - 1.3) * 10.0 / (4.0 - 1.3)            
-    print(f'sp: {P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
+    print(f'sp:{P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
     _l = max(0, P.steering_angle / 3)
-    print(f'sa: {P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
+    print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
     print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, sr:{REWARDS.steps:.1f}, dr:{REWARDS.distance:.1f}, hr:{REWARDS.heading:.1f}, pr:{REWARDS.progress:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}')
