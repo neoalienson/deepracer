@@ -273,10 +273,12 @@ def get_final_reward():
     return max(REWARDS.immediate + REWARDS.progress, 1e-3)
 
 def get_immediate_reward():
+    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
+
     # Zero reward if obviously wrong direction (e.g. spin)
     # below cannot tell diff is right or left
     # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
-    if abs(G.direction_diff) > 30:
+    if abs(G.direction_diff) > 60:
         if SETTINGS.verbose:
             print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
         return 0
@@ -292,18 +294,24 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 0
 
-    if not is_right_turn_section():
-        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
-            if SETTINGS.verbose:
-                print(f"!!! TOO FAST")
-            return 0
+    # avoid sharp turn if previous speed is fast
+    if STATE.speed > 2.3 and abs(P.steering_angle > 20)
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
+        return 0
 
     if CONFIGS.STAGE > 1 and OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
-        return 0
+        return lc / 2
 
-    return max((REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ), 1e-3)
+    if not is_right_turn_section():
+        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
+            if SETTINGS.verbose:
+                print(f"!!! TOO FAST")
+            return lc / 3
+
+    return max(lc, 1e-3)
 
 def is_right_turn_section():
     return (P.closest_waypoints[0] > 25 or P.closest_waypoints[1] > 25) and (P.closest_waypoints[0] < 34 or P.closest_waypoints[1] < 34)
