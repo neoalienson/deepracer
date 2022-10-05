@@ -5,6 +5,7 @@ class SETTINGS:
     verbose = True
 
 class CONFIGS:
+    STAGE = 1
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
     DISTANCE_MULTIPLIER = 1
     STEERING_MULTIPLIER = 0.5
@@ -291,12 +292,12 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 0
 
-    if P.speed - OPTIMAL.speed > 1:
+    if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
         if SETTINGS.verbose:
             print(f"!!! TOO FAST")
         return 0
 
-    if OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
+    if CONFIGS.STAGE > 1 and OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 0
@@ -334,9 +335,13 @@ def print_params():
     if not SETTINGS.verbose:
         return    
     import math
-    capped_final = min(REWARDS.final, 20)
-    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(20-capped_final*1)}", end =" ")
-    print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(REWARDS.speed*2.5)}{' ' * math.floor(10-REWARDS.speed*2.5)}", end =" ")
+    FINAL_BAR_LENGTH = 10
+    SPEED_BAR_LENGTH = 5 
+    capped_final = min(REWARDS.final, FINAL_BAR_LENGTH)
+    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(FINAL_BAR_LENGTH-capped_final*1)}", end =" ")
+    capped_speed = min(REWARDS.speed, SPEED_BAR_LENGTH)
+    normalized_speed = (REWARDS.speed - 1.3) * SPEED_BAR_LENGTH / 4.0
+    print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(normalized_speed)}{' ' * math.floor(SPEED_BAR_LENGTH-normalized_speed)}", end =" ")
     print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*10)}{' ' * math.floor(10-REWARDS.distance*10)}", end =" ")
     print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
     print(f"pr:{REWARDS.progress:.1f}", end =" ")
