@@ -292,10 +292,11 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 0
 
-    if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
-        if SETTINGS.verbose:
-            print(f"!!! TOO FAST")
-        return 0
+    if not is_right_turn_section():
+        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
+            if SETTINGS.verbose:
+                print(f"!!! TOO FAST")
+            return 0
 
     if CONFIGS.STAGE > 1 and OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
