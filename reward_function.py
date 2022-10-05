@@ -309,7 +309,7 @@ def get_immediate_reward():
         if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
             if SETTINGS.verbose:
                 print(f"!!! TOO FAST")
-            return lc / 3
+            return lc / 5
 
     return max(lc, 1e-3)
 
