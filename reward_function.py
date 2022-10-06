@@ -5,7 +5,7 @@ class SETTINGS:
     verbose = True
 
 class CONFIGS:
-    STAGE = 1
+    STAGE = 2
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
     DISTANCE_MULTIPLIER = 1
     STEERING_MULTIPLIER = 0.5
@@ -276,7 +276,9 @@ def get_final_reward():
 def get_immediate_reward():
     if CONFIGS.STAGE == 1:
         lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
-    else:
+    elif CONFIGS.STAGE == 2:
+        lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
+    elif
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
     ## Stage 2 Checks
@@ -300,14 +302,17 @@ def get_immediate_reward():
         return max(lc, 1e-3)
 
     ## Stage 2 Checks
-
+    
     # Zero reward if obviously wrong direction (e.g. spin)
     # below cannot tell diff is right or left
     # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
-    if abs(G.direction_diff) > 60:
+    if abs(G.direction_diff) > 30:
         if SETTINGS.verbose:
             print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
         return 1e-3
+
+    if CONFIGS.STAGE == 2:
+        return max(lc, 1e-3)
 
     # avoid sharp turn if previous speed is fast
     if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
