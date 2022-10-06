@@ -121,6 +121,7 @@ class G:
     intermediate_progress = [0] * 71
     next_index = None
     intermediate_progress_bonus = None
+    projected_time = None
 
 def reward_function(params):
     read_params(params)
@@ -228,9 +229,9 @@ def reward_function(params):
     #         G.intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
     # G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
     times_list = [row[3] for row in TRACK_INFO.racing_line]
-    projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
+    G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
     try:
-        steps_prediction = projected_time * 15 + 1
+        steps_prediction = G.projected_time * 15 + 1
         reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (SETTINGS.FASTEST_TIME) /
                                        (SETTINGS.STANDARD_TIME - SETTINGS.FASTEST_TIME))*(steps_prediction - (SETTINGS.STANDARD_TIME*15+1)))
         REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
@@ -379,7 +380,7 @@ def print_params():
     print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f},pr:{REWARDS.progress:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f},pr:{REWARDS.progress:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time: 1f}')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
