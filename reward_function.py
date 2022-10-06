@@ -237,7 +237,6 @@ def reward_function(params):
     except:
         REWARDS.progress = 0
 
-    REWARDS.progress = 1
     REWARDS.final = get_final_reward()
     print_params()
 
