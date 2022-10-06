@@ -274,9 +274,31 @@ def get_final_reward():
 
 def get_immediate_reward():
     if CONFIGS.STAGE == 1:
-        return (REWARDS.distance) ** 2 + (REWARDS.distance)
+        lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
     else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
+
+    ## Stage 2 Checks
+
+    if is_right_turn_section() and P.steering_angle > 0:
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
+        return 1e-3
+
+    if is_left_turn_section() and P.steering_angle < 0:
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
+        return 1e-3
+
+    if is_straight_section() and P.steps > 5 and P.steering_angle > 15:
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
+        return 1e-3
+
+    if CONFIGS.STAGE == 1:
+        return max(lc, 1e-3)
+
+    ## Stage 2 Checks
 
     # Zero reward if obviously wrong direction (e.g. spin)
     # below cannot tell diff is right or left
@@ -284,35 +306,24 @@ def get_immediate_reward():
     if abs(G.direction_diff) > 60:
         if SETTINGS.verbose:
             print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
-        return lc / 10
-
-    # prohibit left turn between waypoints
-    if is_right_turn_section() and P.steering_angle > 0:
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
-        return lc / 10
-
-    if is_left_turn_section() and P.steering_angle < 0:
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
-        return lc / 10
+        return 1e-3
 
     # avoid sharp turn if previous speed is fast
     if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
-        return lc / 10
+        return 1e-3
 
     if OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
-        return lc / 2
+        return 1e-3
 
     if not is_right_turn_section():
         if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
             if SETTINGS.verbose:
                 print(f"!!! TOO FAST")
-            return lc / 5
+            return 1e-3
 
     return max(lc, 1e-3)
 

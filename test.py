@@ -31,61 +31,61 @@ class TestRewardFunc(unittest.TestCase):
   def test_direction_difference_exceed_30(self):
     self.params = {'all_wheels_on_track':False,'x':0.1402956865016356,'y':4.045675685819531,'distance_from_center':0.6306292205255717,'is_left_of_center':False,'heading':-154.9588545914767,'progress':7.9108419101282745,'steps':20.0,'speed':3.0,'steering_angle':-11.3,'track_width':0.7593030450788312,'waypoints':self.waypoints ,'closest_waypoints':[86, 87],'is_offtrack':True}
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertEqual(REWARDS.immediate, 1e-3)
  
 
   def test_direction_difference_less_30(self):
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
     self.params['heading'] = self.params['heading'] - 30
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # The speed of the car is 1.5 m/s slower than its optimal speed on a straight section. Essentially the car is going too slow on straight sections.
   def test_too_slow_beyond_stage_1(self):
     CONFIGS.STAGE = 2
     self.params['speed'] = 0.1
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_no_too_slow_in_stage_1(self):
     self.params['speed'] = 0.1
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # any speed going beyond a safe learning value consider as too fast in stage1
   def test_too_fast_in_stage_1(self):
     self.params['speed'] = 2.4
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_no_too_fast_in_right_turn_section(self):
     self.params['speed'] = 4
     self.params['heading'] = 43.1
     self.params['closest_waypoints'] = [26, 27]
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
     CONFIGS.STAGE = 2
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # The car’s speed is at least 1 m/s greater than its optimal speed while it is making a turn. Essentially the car is turning too fast.
   def test_too_fast_beyond_stage_1(self):
     CONFIGS.STAGE = 2
     self.params['speed'] = 5.1
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_close_to_optimal_speed(self):
     CONFIGS.STAGE = 2
     self.params['speed'] = 4.1
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_correct_direction(self):
     self.params['heading'] = self.params['heading'] - 10
     reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 0)
+    self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_allow_at_least_one_wheel_on_track(self):
     self.params['all_wheels_on_track'] = False
@@ -97,7 +97,7 @@ class TestRewardFunc(unittest.TestCase):
     for steering_angle in [-10, 0, 10]:
       self.params['steering_angle'] = steering_angle
       reward_function(self.params)
-      self.assertNotEqual(REWARDS.immediate, 0)
+      self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_can_make_right_turn_or_go_straight_in_right_turn_section(self):
     self.params['closest_waypoints'] = [26, 27]
@@ -105,26 +105,26 @@ class TestRewardFunc(unittest.TestCase):
     for steering_angle in [-10, 0]:
       self.params['steering_angle'] = steering_angle
       reward_function(self.params)
-      self.assertNotEqual(REWARDS.immediate, 0)
+      self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_should_not_make_left_turn_in_right_turn_section(self):
     self.params['closest_waypoints'] = [26, 27]
     self.params['steering_angle'] = 10
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_can_make_left_turn_go_straight_in_left_turn_section(self):
     self.params['closest_waypoints'] = [19, 20]
     for steering_angle in [0, 10]:
       self.params['steering_angle'] = steering_angle
       reward_function(self.params)
-      self.assertNotEqual(REWARDS.immediate, 0)
+      self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   def test_should_not_make_right_turn_in_left_turn_section(self):
     self.params['closest_waypoints'] = [19, 20]
     self.params['steering_angle'] = -10
     reward_function(self.params)
-    self.assertEqual(REWARDS.immediate, 0)
+    self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_is_not_right_turn_section(self):
     self.params['closest_waypoints'] = [0, 1]
