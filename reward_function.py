@@ -278,7 +278,7 @@ def get_immediate_reward():
         lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
     # elif CONFIGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
-    elif
+    else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
     ## Stage 2 Checks
