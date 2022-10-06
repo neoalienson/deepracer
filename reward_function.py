@@ -235,7 +235,7 @@ def reward_function(params):
                                        (SETTINGS.STANDARD_TIME - SETTINGS.FASTEST_TIME))*(steps_prediction - (SETTINGS.STANDARD_TIME*15+1)))
         REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
     except:
-        REWARDS.progress = 0.5
+        REWARDS.progress = 1
 
     REWARDS.final = get_final_reward()
     print_params()
