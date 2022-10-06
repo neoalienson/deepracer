@@ -274,7 +274,7 @@ def get_final_reward():
 
 def get_immediate_reward():
     if CONFIGS.STAGE == 1:
-        lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
+        return (REWARDS.distance) ** 2 + (REWARDS.distance)
     else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
@@ -298,17 +298,17 @@ def get_immediate_reward():
         return lc / 10
 
     # avoid sharp turn if previous speed is fast
-    if CONFIGS.STAGE > 1 and STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
+    if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
         return lc / 10
 
-    if CONFIGS.STAGE > 1 and OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
+    if OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return lc / 2
 
-    if CONFIGS.STAGE > 1 and not is_right_turn_section():
+    if not is_right_turn_section():
         if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
             if SETTINGS.verbose:
                 print(f"!!! TOO FAST")
