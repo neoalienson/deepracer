@@ -236,7 +236,7 @@ def reward_function(params):
     REWARDS.final = get_final_reward()
 
     ## Incentive for finishing the lap in less steps ##
-    if progress == 100:
+    if P.progress == 100:
         REWARDS.finish = max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
               (15*(TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME)))*(P.steps-TRACK_INFO.STANDARD_TIME*15))
     else:
@@ -490,6 +490,7 @@ class REWARDS:
     distance = 0
     progress = 0
     immediate = 0
+    finish = 0
 
 class OPTIMAL:
     speed = 0
