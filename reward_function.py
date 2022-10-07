@@ -238,6 +238,8 @@ def reward_function(params):
     except:
         REWARDS.progress = 0
 
+    REWARDS.progress = 1
+
     REWARDS.final = get_final_reward()
     print_params()
 
@@ -281,7 +283,7 @@ def get_immediate_reward():
     else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
-    ## Stage 2 Checks
+    ## Stage 1 Checks
 
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
@@ -298,10 +300,10 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
         return 1e-3
 
-    if CONFIGS.STAGE == 1:
+    if CONFIGS.STAGE < 3:
         return max(lc, 1e-3)
 
-    ## Stage 2 Checks
+    ## Stage 3 Checks
     
     # Zero reward if obviously wrong direction (e.g. spin)
     # below cannot tell diff is right or left
