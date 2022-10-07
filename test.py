@@ -88,7 +88,8 @@ class TestRewardFunc(unittest.TestCase):
 
   def test_keep_all_wheels_on_track(self):
     self.params['all_wheels_on_track'] = False
-    self.assertEqual(reward_function(self.params), 0.001)
+    reward_function(self.params)
+    self.assertEqual(REWARDS.immediate, 0.001)
 
   def test_can_make_turn_or_go_straight_in_straight_section(self):
     self.params['closest_waypoints'] = [47, 48]
