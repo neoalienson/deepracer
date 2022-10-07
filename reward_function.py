@@ -285,12 +285,17 @@ def get_immediate_reward():
 
     ## Stage 1 Checks
 
+    if not P.all_wheels_on_track and not is_left_turn_section():
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD KEEP ALL WHEEL ON TRACK EXCEPT LEFT TURN")
+        return 1e-3
+
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 1e-3
 
-    if is_left_turn_section() and P.steering_angle < 0:
+    if is_left_turn_section() and P.steering_angle < -10:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 1e-3
@@ -302,8 +307,6 @@ def get_immediate_reward():
 
     if CONFIGS.STAGE < 3:
         return max(lc, 1e-3)
-
-    ## Stage 3 Checks
     
     # Zero reward if obviously wrong direction (e.g. spin)
     # below cannot tell diff is right or left
@@ -316,6 +319,8 @@ def get_immediate_reward():
     if CONFIGS.STAGE == 2:
         return max(lc, 1e-3)
 
+    ## Stage 3 Checks
+    
     # avoid sharp turn if previous speed is fast
     if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
         if SETTINGS.verbose:
