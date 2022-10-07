@@ -234,6 +234,14 @@ def reward_function(params):
     # REWARDS.progress = min(1, REWARDS.progress)
 
     REWARDS.final = get_final_reward()
+
+    ## Incentive for finishing the lap in less steps ##
+    if progress == 100:
+        REWARDS.finish = max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
+              (15*(TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME)))*(P.steps-TRACK_INFO.STANDARD_TIME*15))
+    else:
+        REWARDS.finish = 0
+
     print_params()
 
     return float(REWARDS.final)
@@ -266,7 +274,7 @@ def get_final_reward():
         if SETTINGS.verbose:
             print(f"OFF TRACK")
 #    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
-    return max(REWARDS.immediate + REWARDS.progress, 1e-3)
+    return max(REWARDS.immediate + REWARDS.progress + REWARDS.finish, 1e-3)
 
 def get_immediate_reward():
     if SETTINGS.STAGE == 1:
