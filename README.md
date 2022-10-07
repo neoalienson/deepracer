@@ -28,6 +28,8 @@ Max Speed 4
 * https://medium.com/axel-springer-tech/how-to-win-aws-deepracer-ce15454f594a
 
 
- aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/mp4/camera-topview/0-video.mp4 . 
-
- aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/evaluation-20221007222447/evaluation-simtrace/0-iteration.csv
+aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 ls s3://bucket/
+aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-3/mp4/camera-pip/0-video.mp4 .
+aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 --recursive rm s3://bucket/rl-deepracer-1/
+aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/mp4/camera-topview/0-video.mp4 . 
+aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/evaluation-20221007222447/evaluation-simtrace/0-iteration.csv

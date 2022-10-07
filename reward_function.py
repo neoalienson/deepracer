@@ -7,11 +7,6 @@ class SETTINGS:
 class CONFIGS:
     STAGE = 2
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
-    DISTANCE_MULTIPLIER = 1
-    STEERING_MULTIPLIER = 0.5
-    SPEED_MULTIPLIER    = 1
-    PROGRESS_MULTIPLIER = 0.5
-    STEP_MULTIPLIER     = 1
 
 class TRACK_INFO:
     STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
@@ -295,7 +290,7 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 1e-3
 
-    if is_left_turn_section() and P.steering_angle < -10:
+    if is_left_turn_section() and P.steering_angle < -5:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 1e-3
@@ -305,6 +300,12 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
         return 1e-3
 
+    if not is_right_turn_section():
+        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
+            if SETTINGS.verbose:
+                print(f"!!! TOO FAST")
+            return 1e-3
+            
     if CONFIGS.STAGE < 3:
         return max(lc, 1e-3)
     
@@ -331,12 +332,6 @@ def get_immediate_reward():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 1e-3
-
-    if not is_right_turn_section():
-        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
-            if SETTINGS.verbose:
-                print(f"!!! TOO FAST")
-            return 1e-3
 
     return max(lc, 1e-3)
 

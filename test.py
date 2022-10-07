@@ -42,8 +42,8 @@ class TestRewardFunc(unittest.TestCase):
     self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # The speed of the car is 1.5 m/s slower than its optimal speed on a straight section. Essentially the car is going too slow on straight sections.
-  def test_too_slow_beyond_stage_1(self):
-    CONFIGS.STAGE = 2
+  def test_too_slow_beyond_stage_3(self):
+    CONFIGS.STAGE = 3
     self.params['speed'] = 0.1
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3)
@@ -70,8 +70,7 @@ class TestRewardFunc(unittest.TestCase):
     self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # The car’s speed is at least 1 m/s greater than its optimal speed while it is making a turn. Essentially the car is turning too fast.
-  def test_too_fast_beyond_stage_1(self):
-    CONFIGS.STAGE = 2
+  def test_too_fast(self):
     self.params['speed'] = 5.1
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3)
@@ -87,9 +86,9 @@ class TestRewardFunc(unittest.TestCase):
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 1e-3)
 
-  def test_allow_at_least_one_wheel_on_track(self):
+  def test_keep_all_wheels_on_track(self):
     self.params['all_wheels_on_track'] = False
-    self.assertNotEqual(reward_function(self.params), 0.001)
+    self.assertEqual(reward_function(self.params), 0.001)
 
   def test_can_make_turn_or_go_straight_in_straight_section(self):
     self.params['closest_waypoints'] = [47, 48]
