@@ -9,7 +9,7 @@ class TestRewardFunc(unittest.TestCase):
   def setUp(self):
     SETTINGS.verbose = False
     # SETTINGS.debug = True
-    CONFIGS.STAGE = 1
+    SETTINGS.STAGE = 1
     self.params = {
      'all_wheels_on_track': True,
      'x': 3.2000,
@@ -43,7 +43,7 @@ class TestRewardFunc(unittest.TestCase):
 
   # The speed of the car is 1.5 m/s slower than its optimal speed on a straight section. Essentially the car is going too slow on straight sections.
   def test_too_slow_beyond_stage_3(self):
-    CONFIGS.STAGE = 3
+    SETTINGS.STAGE = 3
     self.params['speed'] = 0.1
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3)
@@ -54,10 +54,10 @@ class TestRewardFunc(unittest.TestCase):
     self.assertNotEqual(REWARDS.immediate, 1e-3)
 
   # any speed going beyond a safe learning value consider as too fast in stage1
-  def test_too_fast_in_stage_1(self):
-    self.params['speed'] = 2.4
-    reward_function(self.params)
-    self.assertNotEqual(REWARDS.immediate, 1e-3)
+  # def test_too_fast_in_stage_1(self):
+  #   self.params['speed'] = 2.4
+  #   reward_function(self.params)
+  #   self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_no_too_fast_in_right_turn_section(self):
     self.params['speed'] = 4
@@ -65,7 +65,7 @@ class TestRewardFunc(unittest.TestCase):
     self.params['closest_waypoints'] = [26, 27]
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 1e-3)
-    CONFIGS.STAGE = 2
+    SETTINGS.STAGE = 2
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 1e-3)
 
@@ -76,7 +76,7 @@ class TestRewardFunc(unittest.TestCase):
     self.assertEqual(REWARDS.immediate, 1e-3)
 
   def test_close_to_optimal_speed(self):
-    CONFIGS.STAGE = 2
+    SETTINGS.STAGE = 2
     self.params['speed'] = 4.1
     reward_function(self.params)
     self.assertNotEqual(REWARDS.immediate, 1e-3)
@@ -172,7 +172,7 @@ class TestRewardFunc(unittest.TestCase):
     SETTINGS.verbose = True
     reward_function(self.params)
 
-  @unittest.SkipTest
+  # @unittest.SkipTest
   def test_debug(self):
     SETTINGS.verbose = True
     SETTINGS.debug = True

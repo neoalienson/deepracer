@@ -3,9 +3,8 @@ import math
 class SETTINGS:
     debug = False
     verbose = True
-
-class CONFIGS:
     STAGE = 2
+    REWARD_PER_STEP_FOR_FASTEST_TIME = 1
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
 
 class TRACK_INFO:
@@ -117,6 +116,8 @@ class G:
     next_index = None
     intermediate_progress_bonus = None
     projected_time = None
+    reward_prediction = None
+    steps_prediction = None
 
 def reward_function(params):
     read_params(params)
@@ -226,10 +227,10 @@ def reward_function(params):
     times_list = [row[3] for row in TRACK_INFO.racing_line]
     G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
     try:
-        steps_prediction = G.projected_time * 15 + 1
-        reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (SETTINGS.FASTEST_TIME) /
-                                       (SETTINGS.STANDARD_TIME - SETTINGS.FASTEST_TIME))*(steps_prediction - (SETTINGS.STANDARD_TIME*15+1)))
-        REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, reward_prediction / steps_prediction)
+        G.steps_prediction = G.projected_time * 15 + 1
+        G.reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (SETTINGS.FASTEST_TIME) /
+                                       (SETTINGS.STANDARD_TIME - SETTINGS.FASTEST_TIME))*(G.steps_prediction - (SETTINGS.STANDARD_TIME*15+1)))
+        REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
     except:
         REWARDS.progress = 0
 
@@ -271,9 +272,9 @@ def get_final_reward():
     return max(REWARDS.immediate + REWARDS.progress, 1e-3)
 
 def get_immediate_reward():
-    if CONFIGS.STAGE == 1:
+    if SETTINGS.STAGE == 1:
         lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
-    # elif CONFIGS.STAGE == 2:
+    # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
@@ -301,12 +302,12 @@ def get_immediate_reward():
         return 1e-3
 
     if not is_right_turn_section():
-        if P.speed - OPTIMAL.speed > 1 or (CONFIGS.STAGE == 1 and P.speed > 2.3):
+        if P.speed - OPTIMAL.speed > 1:
             if SETTINGS.verbose:
                 print(f"!!! TOO FAST")
             return 1e-3
-            
-    if CONFIGS.STAGE < 3:
+
+    if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
     
     # Zero reward if obviously wrong direction (e.g. spin)
@@ -317,7 +318,7 @@ def get_immediate_reward():
             print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
         return 1e-3
 
-    if CONFIGS.STAGE == 2:
+    if SETTINGS.STAGE == 2:
         return max(lc, 1e-3)
 
     ## Stage 3 Checks
@@ -373,8 +374,8 @@ def print_params():
     capped_speed = min(REWARDS.speed, SPEED_BAR_LENGTH)
     normalized_speed = (REWARDS.speed - 1.3) * SPEED_BAR_LENGTH / 4.0
     print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(normalized_speed)}{' ' * math.floor(SPEED_BAR_LENGTH-normalized_speed)}", end =" ")
-    print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*10)}{' ' * math.floor(10-REWARDS.distance*10)}", end =" ")
-    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*2.5)}{' ' * math.floor(10-REWARDS.heading*2.5)}", end =" ")
+    print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*5)}{' ' * math.floor(5-REWARDS.distance*5)}", end =" ")
+    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*5)}{' ' * math.floor(5-REWARDS.heading*5)}", end =" ")
     print(f"pr:{REWARDS.progress:.1f}", end =" ")
     speed_bar = (P.speed - 1.3) * 10.0 / (4.0 - 1.3)            
     print(f'sp:{P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
@@ -382,7 +383,9 @@ def print_params():
     print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f},pr:{REWARDS.progress:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time: 1f}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time: 1f}')
+    print(f'-{SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME} * {TRACK_INFO.FASTEST_TIME} / ({TRACK_INFO.STANDARD_TIME} - {TRACK_INFO.FASTEST_TIME}))*({G.steps_prediction} - ({TRACK_INFO.STANDARD_TIME}*15+1))')
+    print(f'REWARDS.progress = min({SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME}, {G.reward_prediction} / {G.steps_prediction})')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
