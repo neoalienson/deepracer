@@ -231,8 +231,7 @@ def reward_function(params):
                                        (TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME))*(G.steps_prediction - (TRACK_INFO.STANDARD_TIME*15+1)))
     REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
 
-
-    REWARDS.progress = min(1, REWARDS.progress)
+    # REWARDS.progress = min(1, REWARDS.progress)
 
     REWARDS.final = get_final_reward()
     print_params()
@@ -382,10 +381,10 @@ def print_params():
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
     print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time: 1f}')
-    print(f'-{SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME} * {TRACK_INFO.FASTEST_TIME} / ({TRACK_INFO.STANDARD_TIME} - {TRACK_INFO.FASTEST_TIME}))*({G.steps_prediction} - ({TRACK_INFO.STANDARD_TIME}*15+1))')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
+        print(f'-{SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME} * {TRACK_INFO.FASTEST_TIME} / ({TRACK_INFO.STANDARD_TIME} - {TRACK_INFO.FASTEST_TIME}))*({G.steps_prediction} - ({TRACK_INFO.STANDARD_TIME}*15+1))')
         print(f'REWARDS.progress = min({SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME}, {G.reward_prediction} / {G.steps_prediction})')
 
     print(f"{{'all_wheels_on_track':{P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center':{P.distance_from_center},'is_left_of_center':{P.is_left_of_center},'heading':{P.heading},'progress':{P.progress},'steps':{P.steps},'speed':{P.speed},'steering_angle':{P.steering_angle},'track_width':{P.track_width},'waypoints':self.waypoints ,'closest_waypoints':{P.closest_waypoints},'is_offtrack':{P.is_offtrack}}}")
