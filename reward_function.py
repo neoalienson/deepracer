@@ -3,7 +3,7 @@ import math
 class SETTINGS:
     debug = False
     verbose = True
-    STAGE = 2
+    STAGE = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1
     REWARD_FOR_FASTEST_TIME = 300 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
 
