@@ -6,6 +6,7 @@ class SETTINGS:
     STAGE = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1
     REWARD_FOR_FASTEST_TIME = 300 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
+    MIN_DIST_CLOSING_BONUS = 0.5
 
 class TRACK_INFO:
     STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
@@ -273,7 +274,7 @@ def get_distance_reward():
     if STATE.prev_normalized_distance_from_route is not None:
         if abs(STATE.prev_normalized_distance_from_route) > abs(G.dist_to_racing_line):
             print("BONUS: STATE.prev_normalized_distance_from_route > G.dist_to_racing_line: {STATE.prev_normalized_distance_from_route:.1f} > {G.dist_to_racing_line:.1f}")
-            return min(d, 0.5)
+            return min(d, SETTINGS.MIN_DIST_CLOSING_BONUS)
     
     # return 1
     #distance reward is value of the standard normal scaled back to 1. 
