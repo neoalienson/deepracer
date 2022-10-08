@@ -198,14 +198,6 @@ def reward_function(params):
     REWARDS.heading = get_heading_reward()
     REWARDS.distance = get_distance_reward()
     REWARDS.speed = get_speed_reward()
-
-    # Before returning reward, update the variables
-    STATE.prev_speed = P.speed
-    STATE.prev_steering_angle = P.steering_angle
-    STATE.prev_direction_diff = G.direction_diff
-    STATE.prev_steps = P.steps
-    STATE.prev_normalized_distance_from_route = G.dist_from_racinig_line
-
     REWARDS.immediate = get_immediate_reward()
 
     # Reward for making steady progress
@@ -244,6 +236,13 @@ def reward_function(params):
         REWARDS.finish = 0
 
     print_params()
+
+    # Before returning reward, update the variables
+    STATE.prev_speed = P.speed
+    STATE.prev_steering_angle = P.steering_angle
+    STATE.prev_direction_diff = G.direction_diff
+    STATE.prev_steps = P.steps
+    STATE.prev_normalized_distance_from_route = G.dist_from_racinig_line
 
     return float(REWARDS.final)
 
@@ -313,28 +312,26 @@ def get_immediate_reward():
             return 1e-3
 
     # avoid sharp turn if previous speed is fast
-    if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
-        return 1e-3
+    # if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
+    #     if SETTINGS.verbose:
+    #         print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
+    #     return 1e-3
 
     if OPTIMAL.speed - P.speed > 2 and is_straight_section():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 1e-3
 
-    if SETTINGS.STAGE < 3:
-        return max(lc, 1e-3)
-    
-    # Zero reward if obviously wrong direction (e.g. spin)
+    # Zero reward if obviously wrong direction (e.g. spin) and it is getting worst
     # below cannot tell diff is right or left
     # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
-    if abs(G.direction_diff) > 30:
-        if SETTINGS.verbose:
-            print(f"!!! FAR AWAY FROM DIRECTION: {G.direction_diff:.1f}")
-        return 1e-3
+    if STATE.prev_direction_diff is not None:
+        if abs(G.direction_diff) > 30 and (abs(G.direction_diff) > abs(STATE.prev_direction_diff)):
+            if SETTINGS.verbose:
+                print(f"!!! FAR AWAY FROM DIRECTION AND GETTING WORST: {G.direction_diff:.1f}, prev: {STATE.prev_direction_diff}")
+            return 1e-3
 
-    if SETTINGS.STAGE == 2:
+    if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
 
     ## Stage 3 Checks
