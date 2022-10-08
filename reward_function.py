@@ -318,7 +318,7 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
         return 1e-3
 
-    if OPTIMAL.speed - P.speed > 2 and is_straight_section:
+    if OPTIMAL.speed - P.speed > 2 and is_straight_section():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 1e-3
