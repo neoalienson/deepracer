@@ -5,7 +5,7 @@ class SETTINGS:
     verbose = True
     STAGE = 2
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1
-    REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
+    REWARD_FOR_FASTEST_TIME = 300 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
 
 class TRACK_INFO:
     STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
@@ -313,17 +313,17 @@ def get_immediate_reward():
             print(f"!!! SHOULD KEEP ALL WHEEL ON TRACK EXCEPT LEFT TURN")
         return 1e-3
 
-    if is_right_turn_section() and P.steering_angle < 0:
+    if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 1e-3
 
-    if is_left_turn_section() and P.steering_angle > 5:
+    if is_left_turn_section() and P.steering_angle < -5:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 1e-3
 
-    if is_straight_section() and P.steps > 5 and P.steering_angle > 15:
+    if is_straight_section() and P.steps > 10 and abs(P.steering_angle > 15):
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
         return 1e-3
