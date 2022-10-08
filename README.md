@@ -33,3 +33,7 @@ aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-3/mp4/camera-p
 aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 --recursive rm s3://bucket/rl-deepracer-1/
 aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/mp4/camera-topview/0-video.mp4 . 
 aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/evaluation-20221007222447/evaluation-simtrace/0-iteration.csv
+
+docker swarm leave --force
+bin/init.sh -a cpu
+git restore README.md hyperparameters.json model_metadata.json reward_function.py
