@@ -167,7 +167,7 @@ def reward_function(params):
     else:
         G.direction_diff = G.route_direction - P.heading
 
-    G.dist_from_racing_line = dist_to_racing_line(G.optimals[0:2], G.optimals_second[0:2], [P.x, P.y])
+    G.dist_to_racing_line = dist_to_racing_line(G.optimals[0:2], G.optimals_second[0:2], [P.x, P.y])
 
     # Reinitialize previous parameters if it is a new episode
     if STATE.prev_steps is None or P.steps < STATE.prev_steps:
@@ -278,7 +278,7 @@ def get_distance_reward():
     #Hence the 1/2*pi*sigma term is cancelled out
 #    sigma=abs(normalized_route_distance_from_inner_border / 4) 
 #  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
-    return max(1e-3, 1 - (G.dist_from_racing_line/(P.track_width * 0.5)))
+    return max(1e-3, 1 - (G.dist_to_racing_line/(P.track_width * 0.5)))
 
 def get_heading_reward():
     if abs(G.direction_diff) <= 20:
@@ -303,11 +303,8 @@ def get_immediate_reward():
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
 
-    if is_first_left_turn_section() or is_second_left_turn_section():
-        lc = (REWARDS.distance + REWARDS.heading * 1.5) ** 2 + (REWARDS.distance * REWARDS.heading * 1.5)
-    else:
-        lc = (REWARDS.distance * 1.5 + REWARDS.heading) ** 2 + (REWARDS.distance * 1.5 * REWARDS.heading )
-
+    lc = REWARDS.distance
+    
     ## Stage 1 Checks
     if (not P.all_wheels_on_track) and (not is_left_turn_section()):
         if SETTINGS.verbose:
