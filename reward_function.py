@@ -111,7 +111,7 @@ class G:
     route_direction = None
     sigma_speed = None
     normalized_distance_from_route = None
-    dist_from_racinig_line = None
+    dist_to_racinig_line = None
     # intermediate_progress = [0] * 71
     next_index = None
     intermediate_progress_bonus = None
@@ -126,7 +126,7 @@ def reset_global():
     route_direction = None
     sigma_speed = None
     normalized_distance_from_route = None
-    dist_from_racinig_line = None
+    dist_to_racinig_line = None
     # intermediate_progress = [0] * 71
     next_index = None
     intermediate_progress_bonus = None
@@ -211,7 +211,7 @@ def reward_function(params):
     OPTIMAL.speed = G.optimals_second[2]
 
     ## Reward if car goes close to optimal racing line ##
-    # G.normalized_distance_from_route = G.dist_from_racinig_line
+    # G.normalized_distance_from_route = G.dist_to_racinig_line
     REWARDS.heading = get_heading_reward()
     REWARDS.distance = get_distance_reward()
     REWARDS.speed = get_speed_reward()
@@ -253,7 +253,7 @@ def reward_function(params):
     STATE.prev_steering_angle = P.steering_angle
     STATE.prev_direction_diff = G.direction_diff
     STATE.prev_steps = P.steps
-    STATE.prev_normalized_distance_from_route = G.dist_from_racinig_line
+    STATE.prev_normalized_distance_from_route = G.dist_to_racinig_line
 
     return float(REWARDS.final)
 
