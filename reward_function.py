@@ -239,6 +239,7 @@ def reward_function(params):
     if P.progress == 100:
         REWARDS.finish = max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
               (15*(TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME)))*(P.steps-TRACK_INFO.STANDARD_TIME*15))
+        print(f'finish reward:{REWARDS.finish:.1f}')
     else:
         REWARDS.finish = 0
 
@@ -277,11 +278,11 @@ def get_final_reward():
     return max(REWARDS.immediate + REWARDS.progress + REWARDS.finish, 1e-3)
 
 def get_immediate_reward():
-    if SETTINGS.STAGE == 1:
-        lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
+    # if SETTINGS.STAGE == 1:
+    #     lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
-    else:
+    # else:
         lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
     ## Stage 1 Checks
@@ -312,6 +313,17 @@ def get_immediate_reward():
                 print(f"!!! TOO FAST")
             return 1e-3
 
+    # avoid sharp turn if previous speed is fast
+    if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
+        return 1e-3
+
+    if OPTIMAL.speed - P.speed > 2 and is_straight_section:
+        if SETTINGS.verbose:
+            print(f"!!! TOO SLOW")
+        return 1e-3
+
     if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
     
@@ -327,17 +339,7 @@ def get_immediate_reward():
         return max(lc, 1e-3)
 
     ## Stage 3 Checks
-    
-    # avoid sharp turn if previous speed is fast
-    if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
-        return 1e-3
 
-    if OPTIMAL.speed - P.speed > 1.5 and is_straight_section:
-        if SETTINGS.verbose:
-            print(f"!!! TOO SLOW")
-        return 1e-3
 
     return max(lc, 1e-3)
 
