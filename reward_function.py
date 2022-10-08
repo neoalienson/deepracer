@@ -278,7 +278,7 @@ def get_distance_reward():
     #Hence the 1/2*pi*sigma term is cancelled out
 #    sigma=abs(normalized_route_distance_from_inner_border / 4) 
 #  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
-    return max(1e-3, 1 - (G.dist_to_racing_line/(P.track_width * 0.5)))
+    return max(1e-3, 1 - (abs(G.dist_to_racing_line)/(P.track_width * 0.75)))
 
 def get_heading_reward():
     if abs(G.direction_diff) <= 20:
@@ -314,7 +314,7 @@ def get_immediate_reward():
     ###############################################################
     ## Stage 2 Checks
     ###############################################################
-    
+
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
@@ -422,7 +422,7 @@ def print_params():
     print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
     _r = max(0, P.steering_angle / -3)
     print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time:.1f}')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time:.1f},dt:{G.dist_to_racing_line:.1f}')
     if SETTINGS.debug:
         print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
         print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
@@ -439,10 +439,11 @@ def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):
                                   y2=second_closest_coords[1]))
 
         # Distances between car and closest and second closest racing point
-        b = abs(dist_2_points(x1=car_coords[0],
+        ob = dist_2_points(x1=car_coords[0],
                                   x2=closest_coords[0],
                                   y1=car_coords[1],
-                                  y2=closest_coords[1]))
+                                  y2=closest_coords[1])
+        b = abs(ob)
         c = abs(dist_2_points(x1=car_coords[0],
                                   x2=second_closest_coords[0],
                                   y1=car_coords[1],
@@ -451,10 +452,10 @@ def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):
         # Calculate distance between car and racing line (goes through 2 closest racing points)
         # try-except in case a=0 (rare bug in DeepRacer)
         try:
-            distance = abs(-(a**4) + 2*(a**2)*(b**2) + 2*(a**2)*(c**2) -
+            distance = (-(a**4) + 2*(a**2)*(b**2) + 2*(a**2)*(c**2) -
                            (b**4) + 2*(b**2)*(c**2) - (c**4))**0.5 / (2*a)
         except:
-            distance = b
+            distance = ob
 
         return distance
 
