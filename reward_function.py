@@ -286,7 +286,7 @@ def get_heading_reward():
     return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
 
 def get_speed_reward():
-    return (speed - 1.3) / (4.0 - 1.3)
+    return (P.speed - 1.3) / (4.0 - 1.3)
     # return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
 
 def get_final_reward():
