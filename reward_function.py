@@ -302,7 +302,7 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
+    lc = (REWARDS.distance + REWARDS.heading) ** 2 + (REWARDS.distance * REWARDS.heading )
 
     if is_first_left_turn_section() or is_second_left_turn_section():
         lc = lc * 3
@@ -313,12 +313,12 @@ def get_immediate_reward():
             print(f"!!! SHOULD KEEP ALL WHEEL ON TRACK EXCEPT LEFT TURN")
         return 1e-3
 
-    if is_right_turn_section() and P.steering_angle > 0:
+    if is_right_turn_section() and P.steering_angle < 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
         return 1e-3
 
-    if is_left_turn_section() and P.steering_angle < -5:
+    if is_left_turn_section() and P.steering_angle > 5:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
         return 1e-3
