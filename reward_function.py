@@ -217,7 +217,6 @@ def reward_function(params):
     REWARDS.speed = get_speed_reward()
     REWARDS.progress = get_progress_reward(closest_index)
     REWARDS.immediate = get_immediate_reward()
-    print(REWARDS.immediate)
 
     # Reward for making steady progress
     G.intermediate_progress_bonus = 0
@@ -358,7 +357,6 @@ def get_immediate_reward():
             print(f"!!! TOO SLOW")
         return 1e-3
 
-    print(lc)
     if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
 

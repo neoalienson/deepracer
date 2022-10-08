@@ -35,15 +35,16 @@ class TestRewardFunc(unittest.TestCase):
     STATE.prev_steering_angle = 0
 
   def test_direction_difference_exceed_30_and_getting_worst(self):
-    self.params = {'all_wheels_on_track':True,'x':0.1402956865016356,'y':4.045675685819531,'distance_from_center':0.6306292205255717,'is_left_of_center':False,'heading':-154.9588545914767,'progress':7.9108419101282745,'steps':20.0,'speed':1.0,'steering_angle':-11.3,'track_width':0.7593030450788312,'waypoints':self.waypoints ,'closest_waypoints':[86, 87],'is_offtrack':True}
-    self.fill_state()
+    #r:0.82 *          sr:0.8       dr:0.6 ****  hr:0.0 *     pr:1.0 sp:1.6 ==         sa:  7.6        <<<|           x:2.6, y:4.5, h:179.1, mr:0.8, ir:0.0, os:1.9, dd:93.2, rd:-85.9 ni:0, pt:0.1
+    self.params = {'all_wheels_on_track':True,'x':2.623036002067175,'y':4.497829514428474,'distance_from_center':0.00014469175431930598,'is_left_of_center':False,'heading':179.0787557474805,'progress':0.7905456002215816,'steps':2.0,'speed':1.6,'steering_angle':7.6,'track_width':0.7619247138930645,'waypoints':self.waypoints ,'closest_waypoints':[72, 73],'is_offtrack':False}
     STATE.prev_direction_diff = 0
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3, f'dir diff: {G.direction_diff:.1f}')
  
   def test_direction_difference_exceed_30_but_getting_better(self):
     SETTINGS.verbose = True
-    self.params = {'all_wheels_on_track':True,'x':0.1402956865016356,'y':4.045675685819531,'distance_from_center':0.6306292205255717,'is_left_of_center':False,'heading':-154.9588545914767,'progress':7.9108419101282745,'steps':20.0,'speed':1.0,'steering_angle':-11.3,'track_width':0.7593030450788312,'waypoints':self.waypoints ,'closest_waypoints':[86, 87],'is_offtrack':True}
+    #r:0.82 *          sr:0.8       dr:0.6 ****  hr:0.0 *     pr:1.0 sp:1.6 ==         sa:  7.6        <<<|           x:2.6, y:4.5, h:179.1, mr:0.8, ir:0.0, os:1.9, dd:93.2, rd:-85.9 ni:0, pt:0.1
+    self.params = {'all_wheels_on_track':True,'x':2.623036002067175,'y':4.497829514428474,'distance_from_center':0.00014469175431930598,'is_left_of_center':False,'heading':179.0787557474805,'progress':0.7905456002215816,'steps':2.0,'speed':1.6,'steering_angle':7.6,'track_width':0.7619247138930645,'waypoints':self.waypoints ,'closest_waypoints':[72, 73],'is_offtrack':False}
     self.fill_state()
     STATE.prev_direction_diff = 200
     reward_function(self.params)
