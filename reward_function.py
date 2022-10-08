@@ -267,18 +267,20 @@ def get_progress_reward(closest_index):
 
 
 def get_distance_reward():
+    d = max(1e-3, 1 - (abs(G.dist_to_racing_line)/(P.track_width * 0.8)))
     #Reward reducing distance to the race line
     # distance_reduction_bonus = 1
-    # if STATE.prev_normalized_distance_from_route is not None and STATE.prev_normalized_distance_from_route > G.normalized_distance_from_route:
-    #     if abs(G.normalized_distance_from_route) > 0:
-    #         distance_reduction_bonus = min( abs( STATE.prev_normalized_distance_from_route / G.normalized_distance_from_route ), 2)
+    if STATE.prev_normalized_distance_from_route is not None:
+        if STATE.prev_normalized_distance_from_route > G.dist_to_racing_line:
+            print("BONUS: STATE.prev_normalized_distance_from_route > G.dist_to_racing_line: {STATE.prev_normalized_distance_from_route:.1f} > {G.dist_to_racing_line:.1f}")
+            return min(d, 0.5)
     
     # return 1
     #distance reward is value of the standard normal scaled back to 1. 
     #Hence the 1/2*pi*sigma term is cancelled out
 #    sigma=abs(normalized_route_distance_from_inner_border / 4) 
 #  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
-    return max(1e-3, 1 - (abs(G.dist_to_racing_line)/(P.track_width * 0.75)))
+    return d
 
 def get_heading_reward():
     if abs(G.direction_diff) <= 20:
@@ -409,7 +411,7 @@ def print_params():
     FINAL_BAR_LENGTH = 10
     SPEED_BAR_LENGTH = 5 
     capped_final = min(REWARDS.final, FINAL_BAR_LENGTH)
-    print(f"r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(FINAL_BAR_LENGTH-capped_final*1)}", end =" ")
+    print(f"st:{SETTINGS.STAGE},r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(FINAL_BAR_LENGTH-capped_final*1)}", end =" ")
     capped_speed = min(REWARDS.speed, SPEED_BAR_LENGTH)
     normalized_speed = (REWARDS.speed - 1.3) * SPEED_BAR_LENGTH / 4.0
     print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(normalized_speed)}{' ' * math.floor(SPEED_BAR_LENGTH-normalized_speed)}", end =" ")
