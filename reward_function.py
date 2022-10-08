@@ -220,7 +220,6 @@ def reward_function(params):
 
     # Reward for making steady progress
     G.intermediate_progress_bonus = 0
-    REWARDS.progress = 0
     # REWARDS.progress = 10 * P.progress / P.steps
     # if P.steps <= 5:
     #     REWARDS.progress = 1 #ignore progress in the first 5 steps
@@ -303,7 +302,7 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ) + REWARDS.progress
+    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
     if is_first_left_turn_section() or is_second_left_turn_section():
         lc = lc * 3
