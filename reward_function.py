@@ -205,9 +205,6 @@ def reward_function(params):
         if STATE.prev_direction_diff is not None and abs(STATE.prev_direction_diff) > abs(G.direction_diff):
             steering_angle_maintain_bonus *= 2
 
-    if SETTINGS.debug:
-        print_state()
-
     G.sigma_speed = abs(TRACK_INFO.MAX_SPEED - TRACK_INFO.MIN_SPEED)/6.0
     OPTIMAL.speed = G.optimals_second[2]
 
@@ -391,14 +388,6 @@ def is_straight_section():
     return (P.closest_waypoints[0] > 68 or P.closest_waypoints[1] > 68) or (P.closest_waypoints[0] < 10 or P.closest_waypoints[1] < 10) or \
         (P.closest_waypoints[0] > 53 or P.closest_waypoints[1] > 53) and (P.closest_waypoints[0] < 60 or P.closest_waypoints[1] < 60)
 
-def print_state():
-    if not SETTINGS.verbose:
-        return
-    if STATE.prev_speed is not None:
-      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f}")
-    else:
-      print("empty state")
-
 def init_state():
     STATE.prev_speed = None
     STATE.prev_steering_angle = None
@@ -409,6 +398,14 @@ def print_params():
     if not SETTINGS.verbose:
         return    
     import math
+
+    if not SETTINGS.verbose:
+        return
+    if STATE.prev_speed is not None:
+      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f}, dt:{STATE.prev_normalized_distance_from_route:.1f}")
+    else:
+      print("empty state")
+
     FINAL_BAR_LENGTH = 10
     SPEED_BAR_LENGTH = 5 
     capped_final = min(REWARDS.final, FINAL_BAR_LENGTH)
