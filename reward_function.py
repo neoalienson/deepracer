@@ -112,15 +112,32 @@ class G:
     sigma_speed = None
     normalized_distance_from_route = None
     dist_from_racinig_line = None
-    intermediate_progress = [0] * 71
+    # intermediate_progress = [0] * 71
     next_index = None
     intermediate_progress_bonus = None
     projected_time = None
     reward_prediction = None
     steps_prediction = None
 
+def reset_global():
+    direction_diff = None
+    optimals = None
+    optimals_second = None
+    route_direction = None
+    sigma_speed = None
+    normalized_distance_from_route = None
+    dist_from_racinig_line = None
+    # intermediate_progress = [0] * 71
+    next_index = None
+    intermediate_progress_bonus = None
+    projected_time = None
+    reward_prediction = None
+    steps_prediction = None    
+
 def reward_function(params):
     read_params(params)
+
+    reset_global()
 
     # Get closest indexes for racing line (and distances to all points on racing line)
     closest_index, second_closest_index = closest_2_racing_points_index(TRACK_INFO.racing_line, [P.x, P.y])
@@ -198,6 +215,7 @@ def reward_function(params):
     REWARDS.heading = get_heading_reward()
     REWARDS.distance = get_distance_reward()
     REWARDS.speed = get_speed_reward()
+    REWARDS.progress = get_progress_reward(closest_index)
     REWARDS.immediate = get_immediate_reward()
 
     # Reward for making steady progress
@@ -216,12 +234,6 @@ def reward_function(params):
     #     else:
     #         G.intermediate_progress_bonus = REWARDS.progress ** (5+0.75*pi)
     # G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
-    times_list = [row[3] for row in TRACK_INFO.racing_line]
-    G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
-    G.steps_prediction = G.projected_time * 15 + 1
-    G.reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (TRACK_INFO.FASTEST_TIME) /
-                                       (TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME))*(G.steps_prediction - (TRACK_INFO.STANDARD_TIME*15+1)))
-    REWARDS.progress = min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
 
     # REWARDS.progress = min(1, REWARDS.progress)
 
@@ -245,6 +257,15 @@ def reward_function(params):
     STATE.prev_normalized_distance_from_route = G.dist_from_racinig_line
 
     return float(REWARDS.final)
+
+def get_progress_reward(closest_index):
+    times_list = [row[3] for row in TRACK_INFO.racing_line]
+    G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
+    G.steps_prediction = G.projected_time * 15 + 1
+    G.reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (TRACK_INFO.FASTEST_TIME) /
+                                       (TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME))*(G.steps_prediction - (TRACK_INFO.STANDARD_TIME*15+1)))
+    return min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
+
 
 def get_distance_reward():
     #Reward reducing distance to the race line
@@ -274,7 +295,7 @@ def get_final_reward():
         if SETTINGS.verbose:
             print(f"OFF TRACK")
 #    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
-    return max(REWARDS.immediate + REWARDS.progress + REWARDS.finish, 1e-3)
+    return max(REWARDS.immediate + REWARDS.finish, 1e-3)
 
 def get_immediate_reward():
     # if SETTINGS.STAGE == 1:
@@ -282,7 +303,7 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
+    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading ) + REWARDS.progress
 
     if is_first_left_turn_section() or is_second_left_turn_section():
         lc = lc * 3
