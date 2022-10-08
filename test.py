@@ -38,7 +38,6 @@ class TestRewardFunc(unittest.TestCase):
     self.params = {'all_wheels_on_track':True,'x':0.1402956865016356,'y':4.045675685819531,'distance_from_center':0.6306292205255717,'is_left_of_center':False,'heading':-154.9588545914767,'progress':7.9108419101282745,'steps':20.0,'speed':1.0,'steering_angle':-11.3,'track_width':0.7593030450788312,'waypoints':self.waypoints ,'closest_waypoints':[86, 87],'is_offtrack':True}
     self.fill_state()
     STATE.prev_direction_diff = 0
-    SETTINGS.verbose = True
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3, f'dir diff: {G.direction_diff:.1f}')
  
