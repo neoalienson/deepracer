@@ -271,7 +271,7 @@ def get_distance_reward():
     #Reward reducing distance to the race line
     # distance_reduction_bonus = 1
     if STATE.prev_normalized_distance_from_route is not None:
-        if STATE.prev_normalized_distance_from_route > G.dist_to_racing_line:
+        if abs(STATE.prev_normalized_distance_from_route) > abs(G.dist_to_racing_line):
             print("BONUS: STATE.prev_normalized_distance_from_route > G.dist_to_racing_line: {STATE.prev_normalized_distance_from_route:.1f} > {G.dist_to_racing_line:.1f}")
             return min(d, 0.5)
     
