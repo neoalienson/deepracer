@@ -286,8 +286,8 @@ def get_heading_reward():
     return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
 
 def get_speed_reward():
-    return (P.speed - 1.3) / (4.0 - 1.3)
-    # return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
+    # return (P.speed - 1.3) / (4.0 - 1.3)
+    return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
 
 def get_final_reward():
     if P.is_offtrack:
@@ -306,11 +306,6 @@ def get_immediate_reward():
     lc = REWARDS.distance * 2 + REWARDS.speed + 0.5
 
     ## Stage 1 Checks
-    if (not P.all_wheels_on_track) and (not is_left_turn_section()):
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD KEEP ALL WHEEL ON TRACK EXCEPT LEFT TURN")
-        return 1e-3
-
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
@@ -326,7 +321,7 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
         return 1e-3
 
-    if not is_right_turn_section():
+    if is_first_left_turn_section():
         if P.speed - OPTIMAL.speed > 1:
             if SETTINGS.verbose:
                 print(f"!!! TOO FAST")
@@ -349,6 +344,13 @@ def get_immediate_reward():
                 print(f"!!! FAR AWAY FROM DIRECTION AND GETTING WORST: {G.direction_diff:.1f}, prev: {STATE.prev_direction_diff}")
             return 1e-3
 
+    if SETTINGS.STAGE < 2:
+        return max(lc, 1e-3)
+
+    ###############################################################
+    ## Stage 2 Checks
+    ###############################################################
+
     if OPTIMAL.speed - P.speed > 2 and is_straight_section():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
@@ -356,10 +358,6 @@ def get_immediate_reward():
 
     if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
-
-    ###############################################################
-    ## Stage 2 Checks
-    ###############################################################
 
     ###############################################################
     ## Stage 3 Checks
