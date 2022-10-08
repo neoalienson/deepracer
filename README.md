@@ -41,3 +41,4 @@ git restore README.md hyperparameters.json model_metadata.json reward_function.p
 cp run.env ..
 
 git add . && git commit -m update
+dr-upload-custom-files  && dr-start-training -w
