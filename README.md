@@ -36,4 +36,8 @@ aws $DR_LOCAL_PROFILE_ENDPOINT_URL s3 cp s3://bucket/rl-deepracer-sagemaker/eval
 
 docker swarm leave --force
 bin/init.sh -a cpu
+cd custom_files
 git restore README.md hyperparameters.json model_metadata.json reward_function.py
+cp run.env ..
+
+git add . && git commit -m update
