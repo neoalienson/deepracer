@@ -283,11 +283,10 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-        lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
+    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
     ## Stage 1 Checks
-
-    if not P.all_wheels_on_track and not is_left_turn_section():
+    if (not P.all_wheels_on_track) and (not is_left_turn_section()):
         if SETTINGS.verbose:
             print(f"!!! SHOULD KEEP ALL WHEEL ON TRACK EXCEPT LEFT TURN")
         return 1e-3
