@@ -284,6 +284,9 @@ def get_immediate_reward():
     # else:
     lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading )
 
+    if is_first_left_turn_section() or is_second_left_turn_section():
+        lc = lc * 3
+
     ## Stage 1 Checks
     if (not P.all_wheels_on_track) and (not is_left_turn_section()):
         if SETTINGS.verbose:
@@ -336,11 +339,16 @@ def get_immediate_reward():
 
     ## Stage 3 Checks
 
-
     return max(lc, 1e-3)
 
 def is_right_turn_section():
     return (P.closest_waypoints[0] > 25 or P.closest_waypoints[1] > 25) and (P.closest_waypoints[0] < 34 or P.closest_waypoints[1] < 34)
+
+def is_first_left_turn_section():
+    return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23)
+
+def is_second_left_turn_section():
+    return (P.closest_waypoints[0] > 40 or P.closest_waypoints[1] > 40) and (P.closest_waypoints[0] < 43 or P.closest_waypoints[1] < 43)
 
 def is_left_turn_section():
     return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23) or \
