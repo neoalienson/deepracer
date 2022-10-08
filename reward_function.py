@@ -286,7 +286,8 @@ def get_heading_reward():
     return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
 
 def get_speed_reward():
-    return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
+    return (speed - 1.3) / (4.0 - 1.3)
+    # return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
 
 def get_final_reward():
     if P.is_offtrack:
@@ -302,9 +303,19 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
+    lc = REWARDS.distance * 2 + REWARDS.speed + 0.5
+    # reward if steer less
+    if abs(P.steering_angle) < 20:
+        lc = lc + 0.2 
+    if abs(P.steering_angle) < 10:
+        lc = lc + 0.2 
+    if abs(P.steering_angle) < 5:
+        lc = lc + 0.2 
+    if abs(P.steering_angle) < 3:
+        lc = lc + 0.2 
+    if abs(P.steering_angle) < 1:
+        lc = lc + 0.2 
 
-    lc = REWARDS.distance
-    
     ## Stage 1 Checks
     if (not P.all_wheels_on_track) and (not is_left_turn_section()):
         if SETTINGS.verbose:
