@@ -41,5 +41,5 @@ cd custom_files
 git restore README.md hyperparameters.json model_metadata.json reward_function.py
 cp run.env ..
 
-git add . && git commit -m update
+git add . && git commit -m update && git tag -d 202210090200 && git tag -a 202210090200 -m ""
 dr-upload-custom-files  && dr-start-training -w
