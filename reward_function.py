@@ -5,7 +5,7 @@ class SETTINGS:
     verbose = True
     STAGE = 2
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1
-    REWARD_FOR_FASTEST_TIME = 1000 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
+    REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
 
 class TRACK_INFO:
     STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
@@ -320,10 +320,7 @@ def get_immediate_reward():
     #         print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
     #     return 1e-3
 
-    if OPTIMAL.speed - P.speed > 2 and is_straight_section():
-        if SETTINGS.verbose:
-            print(f"!!! TOO SLOW")
-        return 1e-3
+
 
     # Zero reward if obviously wrong direction (e.g. spin) and it is getting worst
     # below cannot tell diff is right or left
@@ -334,10 +331,21 @@ def get_immediate_reward():
                 print(f"!!! FAR AWAY FROM DIRECTION AND GETTING WORST: {G.direction_diff:.1f}, prev: {STATE.prev_direction_diff}")
             return 1e-3
 
+    if OPTIMAL.speed - P.speed > 2 and is_straight_section():
+        if SETTINGS.verbose:
+            print(f"!!! TOO SLOW")
+        return 1e-3
+    
     if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
 
+    ###############################################################
+    ## Stage 2 Checks
+    ###############################################################
+
+    ###############################################################
     ## Stage 3 Checks
+    ###############################################################
 
     return max(lc, 1e-3)
 
