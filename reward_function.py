@@ -303,7 +303,8 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = REWARDS.distance * 2 + REWARDS.speed + 0.5
+    # lc = REWARDS.distance * 2 + REWARDS.speed + 0.5
+    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading)
 
     ## Stage 1 Checks
     if is_right_turn_section() and P.steering_angle > 0:
