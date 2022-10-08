@@ -302,10 +302,11 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = (REWARDS.distance + REWARDS.heading) ** 2 + (REWARDS.distance * REWARDS.heading )
 
     if is_first_left_turn_section() or is_second_left_turn_section():
-        lc = lc * 3
+        lc = (REWARDS.distance + REWARDS.heading * 1.5) ** 2 + (REWARDS.distance * REWARDS.heading * 1.5)
+    else
+        lc = (REWARDS.distance * 1.5 + REWARDS.heading) ** 2 + (REWARDS.distance * 1.5 * REWARDS.heading )
 
     ## Stage 1 Checks
     if (not P.all_wheels_on_track) and (not is_left_turn_section()):
