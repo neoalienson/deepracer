@@ -33,11 +33,13 @@ class TestRewardFunc(unittest.TestCase):
     STATE.prev_speed = 0
     STATE.prev_direction_diff = 200
     STATE.prev_steering_angle = 0
+    STATE.prev_normalized_distance_from_route = 0
 
   def test_closing_bonus(self):
     # st:1,r:2.77 ***        sr:0.8       dr:0.8 ****  hr:0.0 *     pr:0.0 sp:1.6 ==         sa:  7.6        <<<|           x:2.6, y:4.5, h:179.1, mr:2.8, ir:0.0, os:1.9, dd:93.2, rd:-85.9 ni:0, pt:9999.0,dt:0.2
     self.params = {'all_wheels_on_track':True,'x':2.623036002067175,'y':4.497829514428474,'distance_from_center':0.00014469175431930598,'is_left_of_center':False,'heading':179.0787557474805,'progress':0.7905456002215816,'steps':2.0,'speed':1.6,'steering_angle':7.6,'track_width':0.7619247138930645,'waypoints':self.waypoints ,'closest_waypoints':[72, 73],'is_offtrack':False}
     reward_function(self.params)
+    fill_state()
     STATE.prev_normalized_distance_from_route = 0.3
     self.assertEqual(get_distance_reward(),SETTINGS.MIN_DIST_CLOSING_BONUS)
 
@@ -45,12 +47,14 @@ class TestRewardFunc(unittest.TestCase):
     # st:1,r:2.77 ***        sr:0.8       dr:0.8 ****  hr:0.0 *     pr:0.0 sp:1.6 ==         sa:  7.6        <<<|           x:2.6, y:4.5, h:179.1, mr:2.8, ir:0.0, os:1.9, dd:93.2, rd:-85.9 ni:0, pt:9999.0,dt:0.2
     self.params = {'all_wheels_on_track':True,'x':2.623036002067175,'y':4.497829514428474,'distance_from_center':0.00014469175431930598,'is_left_of_center':False,'heading':179.0787557474805,'progress':0.7905456002215816,'steps':2.0,'speed':1.6,'steering_angle':7.6,'track_width':0.7619247138930645,'waypoints':self.waypoints ,'closest_waypoints':[72, 73],'is_offtrack':False}
     reward_function(self.params)
+    fill_state()
     STATE.prev_normalized_distance_from_route = 0.1
     self.assertNotEqual(get_distance_reward(), SETTINGS.MIN_DIST_CLOSING_BONUS)
 
   def test_direction_difference_exceed_30_and_getting_worst(self):
     #r:0.82 *          sr:0.8       dr:0.6 ****  hr:0.0 *     pr:1.0 sp:1.6 ==         sa:  7.6        <<<|           x:2.6, y:4.5, h:179.1, mr:0.8, ir:0.0, os:1.9, dd:93.2, rd:-85.9 ni:0, pt:0.1
     self.params = {'all_wheels_on_track':True,'x':2.623036002067175,'y':4.497829514428474,'distance_from_center':0.00014469175431930598,'is_left_of_center':False,'heading':179.0787557474805,'progress':0.7905456002215816,'steps':2.0,'speed':1.6,'steering_angle':7.6,'track_width':0.7619247138930645,'waypoints':self.waypoints ,'closest_waypoints':[72, 73],'is_offtrack':False}
+    fill_state()
     STATE.prev_direction_diff = 0
     reward_function(self.params)
     self.assertEqual(REWARDS.immediate, 1e-3, f'dir diff: {G.direction_diff:.1f}')
@@ -199,7 +203,7 @@ class TestRewardFunc(unittest.TestCase):
     reward_function(self.params)
     self.assertNotEqual(STATE.prev_speed, None)
 
-  @unittest.SkipTest
+  # @unittest.SkipTest
   def test_verbose(self):
     SETTINGS.verbose = True
     reward_function(self.params)
