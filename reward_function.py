@@ -217,6 +217,7 @@ def reward_function(params):
     REWARDS.speed = get_speed_reward()
     REWARDS.progress = get_progress_reward(closest_index)
     REWARDS.immediate = get_immediate_reward()
+    print(REWARDS.immediate)
 
     # Reward for making steady progress
     G.intermediate_progress_bonus = 0
@@ -305,7 +306,7 @@ def get_immediate_reward():
 
     if is_first_left_turn_section() or is_second_left_turn_section():
         lc = (REWARDS.distance + REWARDS.heading * 1.5) ** 2 + (REWARDS.distance * REWARDS.heading * 1.5)
-    else
+    else:
         lc = (REWARDS.distance * 1.5 + REWARDS.heading) ** 2 + (REWARDS.distance * 1.5 * REWARDS.heading )
 
     ## Stage 1 Checks
@@ -356,7 +357,8 @@ def get_immediate_reward():
         if SETTINGS.verbose:
             print(f"!!! TOO SLOW")
         return 1e-3
-    
+
+    print(lc)
     if SETTINGS.STAGE < 3:
         return max(lc, 1e-3)
 
