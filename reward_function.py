@@ -233,7 +233,7 @@ def reward_function(params):
     # G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
 
     # REWARDS.progress = min(1, REWARDS.progress)
-    
+
     ## Incentive for finishing the lap in less steps ##
     if P.progress == 100:
         REWARDS.finish = max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
@@ -282,8 +282,14 @@ def get_distance_reward():
 
 def get_heading_reward():
     if abs(G.direction_diff) <= 20:
-        return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
-    return math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
+        h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
+    h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
+    if STATE.prev_direction_diff is not None:
+        if abs(G.direction_diff) < abs(STATE.prev_direction_diff):
+            h = max(h, 0.2)
+            if SETTINGS.verbose:
+                print(f"BONUS GETTING RIGHT DIR")
+    return h
 
 def get_speed_reward():
     # return (P.speed - 1.3) / (4.0 - 1.3)
@@ -303,8 +309,9 @@ def get_immediate_reward():
     # elif SETTINGS.STAGE == 2:
     #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
     # else:
-    lc = REWARDS.distance
-#    lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading)
+    # lc = REWARDS.distance
+    # lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading)
+    lc = (REWARDS.distance + REWARDS.heading) ** 2 + (REWARDS.distance * REWARDS.heading)
 
     ## Stage 1 Checks
 
