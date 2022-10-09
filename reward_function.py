@@ -23,8 +23,8 @@ def reward_function(params, verbose=True):
     global is_offtrack
 
     REWARD_FOR_FASTEST_TIME = 500 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
-    STANDARD_TIME = 11.0  # seconds (time that is easily done by model)
-    FASTEST_TIME = 7.3  # seconds (best time of 1st place on the track)
+    STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
+    FASTEST_TIME = 8.3  # seconds (best time of 1st place on the track)
 
     # first 45 iteration
     STAGE = 1
@@ -170,6 +170,11 @@ def reward_function(params, verbose=True):
     progress_reward = PROGRESS_MULTIPLIER
     reward += progress_reward
 
+    ## Incentive for finishing the lap in less steps ##
+    if progress == 100:
+        return max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
+            (15*(TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME)))*(P.steps-TRACK_INFO.STANDARD_TIME*15))
+
     if all_wheels_on_track == False:
         reward = 0.001
         if verbose:
@@ -217,7 +222,6 @@ def print_params():
 
     if not VERBOSE:
         return    
-    import math
     print(f"r:{reward:.2f} {'*' * math.ceil(reward*5)}{' ' * math.floor(20-reward*5)}", end =" ")
     print(f"sr:{speed_reward:.1f} {'*' * math.ceil(speed_reward*2.5)}{' ' * math.floor(10-speed_reward*2.5)}", end =" ")
     print(f"dr:{distance_reward:.1f} {'*' * math.ceil(distance_reward*10)}{' ' * math.floor(10-distance_reward*10)}", end =" ")

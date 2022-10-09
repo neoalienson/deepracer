@@ -8,6 +8,16 @@
       {"steering_angle":   7.6,"speed": 1.6,"index": 5},
       {"steering_angle":  -8.5,"speed": 1.6,"index": 6},
       {"steering_angle":   0.7,"speed": 1.9,"index": 7}
+
+      {"steering_angle":   0.2,"speed": 1.4,"index": 8},
+      {"steering_angle":   7.6,"speed": 1.6,"index": 9},
+      {"steering_angle":  -8.5,"speed": 1.6,"index": 10},
+      {"steering_angle":   0.7,"speed": 1.9,"index": 11}
+      
+      {"steering_angle":   0.2,"speed": 1.4,"index": 12},
+      {"steering_angle":   7.6,"speed": 1.6,"index": 13},
+      {"steering_angle":  -8.5,"speed": 1.6,"index": 14},
+      {"steering_angle":   0.7,"speed": 1.9,"index": 15}
    ],
    "sensor": [
       "FRONT_FACING_CAMERA"
