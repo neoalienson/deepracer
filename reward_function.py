@@ -101,7 +101,7 @@ class P:
     steering_angle = None
     track_width = None
     waypoints = None
-    closest_waypoints = None
+    closest_waypoints = [0, 1]
     is_offtrack = None
 
 # Global
@@ -114,16 +114,53 @@ class G:
     normalized_distance_from_route = None
     dist_to_racing_line = None
     # intermediate_progress = [0] * 71
-    next_index = None
+    next_index = 1
     intermediate_progress_bonus = None
     projected_time = None
     reward_prediction = None
     steps_prediction = None
 
+class STATE:
+    prev_speed = None
+    prev_steering_angle = None 
+    prev_steps = None
+    prev_direction_diff = None
+    prev_normalized_distance_from_route = None
+    first_racingpoint_index = None
+
+class REWARDS:
+    final = 0.001
+    speed = 0
+    distance = 0
+    progress = 0
+    immediate = 0
+    finish = 0
+
+class OPTIMAL:
+    speed = 0
+
+def read_params(params):
+    ################## INPUT PARAMETERS ###################
+    # Read all input parameters
+    P.all_wheels_on_track = params['all_wheels_on_track']
+    P.x = params['x']
+    P.y = params['y']
+    P.distance_from_center = params['distance_from_center']
+    P.is_left_of_center = params['is_left_of_center']
+    P.heading = params['heading']
+    P.progress = params['progress']
+    P.steps = params['steps']
+    P.speed = params['speed']
+    P.steering_angle = params['steering_angle']
+    P.track_width = params['track_width']
+    P.waypoints = params['waypoints']
+    P.closest_waypoints = params['closest_waypoints']
+    P.is_offtrack = params['is_offtrack']
+
 def reset_global():
     direction_diff = None
-    optimals = None
-    optimals_second = None
+    optimals = [ 2 ]
+    optimals_second = [ 2 ]
     route_direction = None
     sigma_speed = None
     normalized_distance_from_route = None
@@ -134,6 +171,271 @@ def reset_global():
     projected_time = None
     reward_prediction = None
     steps_prediction = None    
+
+
+def get_progress_reward(closest_index):
+    times_list = [row[3] for row in TRACK_INFO.racing_line]
+    G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
+    G.steps_prediction = G.projected_time * 15 + 1
+    G.reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (TRACK_INFO.FASTEST_TIME) /
+                                       (TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME))*(G.steps_prediction - (TRACK_INFO.STANDARD_TIME*15+1)))
+    return min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
+
+
+def get_distance_reward():
+    d = max(1e-3, 1 - (abs(G.dist_to_racing_line)/(P.track_width * 0.8)))
+    #Reward reducing distance to the race line
+    # distance_reduction_bonus = 1
+    if STATE.prev_normalized_distance_from_route is not None:
+        if abs(STATE.prev_normalized_distance_from_route) > abs(G.dist_to_racing_line):
+            print(f'BONUS: STATE.prev_normalized_distance_from_route > G.dist_to_racing_line: {STATE.prev_normalized_distance_from_route:.1f} > {G.dist_to_racing_line:.1f}')
+            return max(d, SETTINGS.MIN_DIST_CLOSING_BONUS)
+    
+    # return 1
+    #distance reward is value of the standard normal scaled back to 1. 
+    #Hence the 1/2*pi*sigma term is cancelled out
+#    sigma=abs(normalized_route_distance_from_inner_border / 4) 
+#  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
+    return d
+
+def get_heading_reward():
+    if abs(G.direction_diff) <= 20:
+        h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
+    h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
+    if STATE.prev_direction_diff is not None:
+        if abs(G.direction_diff) < abs(STATE.prev_direction_diff):
+            h = max(h, 0.2)
+            if SETTINGS.verbose:
+                print(f"BONUS GETTING RIGHT DIR")
+    return h
+
+def get_speed_reward():
+    # return (P.speed - 1.3) / (4.0 - 1.3)
+    return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
+
+def get_final_reward():
+    if P.is_offtrack:
+        return 0.001
+        if SETTINGS.verbose:
+            print(f"OFF TRACK")
+#    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
+    return max(REWARDS.immediate + REWARDS.finish, 1e-3)
+
+def get_immediate_reward():
+    # if SETTINGS.STAGE == 1:
+    #     lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
+    # elif SETTINGS.STAGE == 2:
+    #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
+    # else:
+    lc = REWARDS.distance
+    # lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading)
+    # lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
+
+    ## Stage 1 Checks
+
+    if SETTINGS.STAGE < 2:
+        return max(lc, 1e-3)
+
+    ###############################################################
+    ## Stage 2 Checks
+    ###############################################################
+
+    if is_right_turn_section() and P.steering_angle > 0:
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
+        return 1e-3
+
+    if is_left_turn_section() and P.steering_angle < -5:
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
+        return 1e-3
+
+    if is_straight_section() and P.steps > 10 and abs(P.steering_angle > 15):
+        if SETTINGS.verbose:
+            print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
+        return 1e-3
+
+    if is_first_left_turn_section():
+        if P.speed - OPTIMAL.speed > 1:
+            if SETTINGS.verbose:
+                print(f"!!! TOO FAST")
+            return 1e-3
+
+    # avoid sharp turn if previous speed is fast
+    # if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
+    #     if SETTINGS.verbose:
+    #         print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
+    #     return 1e-3
+
+
+
+    # Zero reward if obviously wrong direction (e.g. spin) and it is getting worst
+    # below cannot tell diff is right or left
+    # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
+    if STATE.prev_direction_diff is not None:
+        if abs(G.direction_diff) > 30 and (abs(G.direction_diff) > abs(STATE.prev_direction_diff)):
+            if SETTINGS.verbose:
+                print(f"!!! FAR AWAY FROM DIRECTION AND GETTING WORST: {G.direction_diff:.1f}, prev: {STATE.prev_direction_diff}")
+            return 1e-3
+
+
+
+    if OPTIMAL.speed - P.speed > 2 and is_straight_section():
+        if SETTINGS.verbose:
+            print(f"!!! TOO SLOW")
+        return 1e-3
+
+    if SETTINGS.STAGE < 3:
+        return max(lc, 1e-3)
+
+    ###############################################################
+    ## Stage 3 Checks
+    ###############################################################
+
+    return max(lc, 1e-3)
+
+def is_right_turn_section():
+    return (P.closest_waypoints[0] > 25 or P.closest_waypoints[1] > 25) and (P.closest_waypoints[0] < 34 or P.closest_waypoints[1] < 34)
+
+def is_first_left_turn_section():
+    return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23)
+
+def is_second_left_turn_section():
+    return (P.closest_waypoints[0] > 40 or P.closest_waypoints[1] > 40) and (P.closest_waypoints[0] < 43 or P.closest_waypoints[1] < 43)
+
+def is_left_turn_section():
+    return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23) or \
+        (P.closest_waypoints[0] > 40 or P.closest_waypoints[1] > 40) and (P.closest_waypoints[0] < 43 or P.closest_waypoints[1] < 43) or \
+        (P.closest_waypoints[0] > 49 or P.closest_waypoints[1] > 49) and (P.closest_waypoints[0] < 52 or P.closest_waypoints[1] < 52) or \
+        (P.closest_waypoints[0] > 61 or P.closest_waypoints[1] > 61) and (P.closest_waypoints[0] < 67 or P.closest_waypoints[1] < 67)
+
+def is_straight_section():
+    return (P.closest_waypoints[0] > 68 or P.closest_waypoints[1] > 68) or (P.closest_waypoints[0] < 10 or P.closest_waypoints[1] < 10) or \
+        (P.closest_waypoints[0] > 53 or P.closest_waypoints[1] > 53) and (P.closest_waypoints[0] < 60 or P.closest_waypoints[1] < 60)
+
+def init_state():
+    STATE.prev_speed = None
+    STATE.prev_steering_angle = None
+    STATE.prev_direction_diff = None
+    STATE.prev_normalized_distance_from_route = None
+
+def print_params():
+    if not SETTINGS.verbose:
+        return    
+
+    if not SETTINGS.verbose:
+        return
+    if STATE.prev_speed is not None:
+      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f}, dt:{STATE.prev_normalized_distance_from_route:.1f}")
+    else:
+      print("empty state")
+
+    FINAL_BAR_LENGTH = 10
+    SPEED_BAR_LENGTH = 5 
+    capped_final = min(REWARDS.final, FINAL_BAR_LENGTH)
+    print(f"st:{SETTINGS.STAGE},r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(FINAL_BAR_LENGTH-capped_final*1)}", end =" ")
+    capped_speed = min(REWARDS.speed, SPEED_BAR_LENGTH)
+    normalized_speed = (REWARDS.speed - 1.3) * SPEED_BAR_LENGTH / 4.0
+    print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(normalized_speed)}{' ' * math.floor(SPEED_BAR_LENGTH-normalized_speed)}", end =" ")
+    print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*5)}{' ' * math.floor(5-REWARDS.distance*5)}", end =" ")
+    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*5)}{' ' * math.floor(5-REWARDS.heading*5)}", end =" ")
+    print(f"pr:{REWARDS.progress:.1f}", end =" ")
+    speed_bar = (P.speed - 1.3) * 10.0 / (4.0 - 1.3)            
+    print(f'sp:{P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
+    _l = max(0, P.steering_angle / 3)
+    print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
+    _r = max(0, P.steering_angle / -3)
+    print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
+    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time:.1f},dt:{G.dist_to_racing_line:.1f}')
+    if SETTINGS.debug:
+        print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
+        print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
+        print(f'-{SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME} * {TRACK_INFO.FASTEST_TIME} / ({TRACK_INFO.STANDARD_TIME} - {TRACK_INFO.FASTEST_TIME}))*({G.steps_prediction} - ({TRACK_INFO.STANDARD_TIME}*15+1))')
+        print(f'REWARDS.progress = min({SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME}, {G.reward_prediction} / {G.steps_prediction})')
+
+    print(f"{{'all_wheels_on_track':{P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center':{P.distance_from_center},'is_left_of_center':{P.is_left_of_center},'heading':{P.heading},'progress':{P.progress},'steps':{P.steps},'speed':{P.speed},'steering_angle':{P.steering_angle},'track_width':{P.track_width},'waypoints':self.waypoints ,'closest_waypoints':{P.closest_waypoints},'is_offtrack':{P.is_offtrack}}}")
+     
+def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):
+    # Calculate the distances between 2 closest racing points
+    a = abs(dist_2_points(x1=closest_coords[0],
+                                  x2=second_closest_coords[0],
+                                  y1=closest_coords[1],
+                                  y2=second_closest_coords[1]))
+
+    # Distances between car and closest and second closest racing point
+    ob = dist_2_points(x1=car_coords[0],
+                                  x2=closest_coords[0],
+                                  y1=car_coords[1],
+                                  y2=closest_coords[1])
+    b = abs(ob)
+    c = abs(dist_2_points(x1=car_coords[0],
+                                  x2=second_closest_coords[0],
+                                  y1=car_coords[1],
+                                  y2=second_closest_coords[1]))
+
+    # Calculate distance between car and racing line (goes through 2 closest racing points)
+    # try-except in case a=0 (rare bug in DeepRacer)
+    try:
+        distance = (-(a**4) + 2*(a**2)*(b**2) + 2*(a**2)*(c**2) -
+                           (b**4) + 2*(b**2)*(c**2) - (c**4))**0.5 / (2*a)
+    except:
+        distance = ob
+
+    return distance
+
+def dist_2_points(x1, x2, y1, y2):
+    return abs(abs(x1-x2)**2 + abs(y1-y2)**2)**0.5
+
+def closest_2_racing_points_index(racing_coords, car_coords):
+    # Calculate all distances to racing points
+    distances = []
+    for i in range(len(racing_coords)):
+        distance = dist_2_points(x1=racing_coords[i][0], x2=car_coords[0],
+                                         y1=racing_coords[i][1], y2=car_coords[1])
+        distances.append(distance)
+
+    # Get index of the closest racing point
+    closest_index = distances.index(min(distances))
+
+    # Get index of the second closest racing point
+    distances_no_closest = distances.copy()
+    distances_no_closest[closest_index] = 999
+    second_closest_index = distances_no_closest.index(
+                min(distances_no_closest))
+
+    return [closest_index, second_closest_index]
+ 
+# Gives back indexes that lie between start and end index of a cyclical list 
+# (start index is included, end index is not)
+def indexes_cyclical(start, end, array_len):
+            if end < start:
+                end += array_len
+
+            return [index % array_len for index in range(start, end)]
+
+# Calculate how long car would take for entire lap, if it continued like it did until now
+def get_projected_time(first_index, closest_index, step_count, times_list):
+            # Calculate how much time has passed since start
+            current_actual_time = (step_count-1) / 15
+
+            # Calculate which indexes were already passed
+            indexes_traveled = indexes_cyclical(first_index, closest_index, len(times_list))
+
+            # Calculate how much time should have passed if car would have followed optimals
+            current_expected_time = sum([times_list[i] for i in indexes_traveled])
+
+            # Calculate how long one entire lap takes if car follows optimals
+            total_expected_time = sum(times_list)
+
+            # Calculate how long car would take for entire lap, if it continued like it did until now
+            try:
+                projected_time = (current_actual_time/current_expected_time) * total_expected_time
+            except:
+                projected_time = 9999
+
+            return projected_time
+
+
 
 def reward_function(params):
     read_params(params)
@@ -254,303 +556,3 @@ def reward_function(params):
     STATE.prev_normalized_distance_from_route = G.dist_to_racing_line
 
     return float(REWARDS.final)
-
-def get_progress_reward(closest_index):
-    times_list = [row[3] for row in TRACK_INFO.racing_line]
-    G.projected_time = get_projected_time(STATE.first_racingpoint_index, closest_index, P.steps, times_list)
-    G.steps_prediction = G.projected_time * 15 + 1
-    G.reward_prediction = max(1e-3, (-SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME * (TRACK_INFO.FASTEST_TIME) /
-                                       (TRACK_INFO.STANDARD_TIME - TRACK_INFO.FASTEST_TIME))*(G.steps_prediction - (TRACK_INFO.STANDARD_TIME*15+1)))
-    return min(SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME, G.reward_prediction / G.steps_prediction)
-
-
-def get_distance_reward():
-    d = max(1e-3, 1 - (abs(G.dist_to_racing_line)/(P.track_width * 0.8)))
-    #Reward reducing distance to the race line
-    # distance_reduction_bonus = 1
-    if STATE.prev_normalized_distance_from_route is not None:
-        if abs(STATE.prev_normalized_distance_from_route) > abs(G.dist_to_racing_line):
-            print(f'BONUS: STATE.prev_normalized_distance_from_route > G.dist_to_racing_line: {STATE.prev_normalized_distance_from_route:.1f} > {G.dist_to_racing_line:.1f}')
-            return max(d, SETTINGS.MIN_DIST_CLOSING_BONUS)
-    
-    # return 1
-    #distance reward is value of the standard normal scaled back to 1. 
-    #Hence the 1/2*pi*sigma term is cancelled out
-#    sigma=abs(normalized_route_distance_from_inner_border / 4) 
-#  return math.exp(-0.5*abs(normalized_car_distance_from_route)**2/G.sigma**2)
-    return d
-
-def get_heading_reward():
-    if abs(G.direction_diff) <= 20:
-        h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 4
-    h = math.cos( abs(G.direction_diff ) * ( math.pi / 180 ) ) ** 10
-    if STATE.prev_direction_diff is not None:
-        if abs(G.direction_diff) < abs(STATE.prev_direction_diff):
-            h = max(h, 0.2)
-            if SETTINGS.verbose:
-                print(f"BONUS GETTING RIGHT DIR")
-    return h
-
-def get_speed_reward():
-    # return (P.speed - 1.3) / (4.0 - 1.3)
-    return math.exp(-0.5*abs(P.speed - OPTIMAL.speed)**2 / G.sigma_speed**2)
-
-def get_final_reward():
-    if P.is_offtrack:
-        return 0.001
-        if SETTINGS.verbose:
-            print(f"OFF TRACK")
-#    return max(REWARDS.immediate + G.intermediate_progress_bonus, 1e-3)
-    return max(REWARDS.immediate + REWARDS.finish, 1e-3)
-
-def get_immediate_reward():
-    # if SETTINGS.STAGE == 1:
-    #     lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
-    # elif SETTINGS.STAGE == 2:
-    #     lc = (REWARDS.speed + REWARDS.distance) ** 2 + ( REWARDS.speed * REWARDS.distance)
-    # else:
-    # lc = REWARDS.distance
-    # lc = (REWARDS.speed + REWARDS.distance + REWARDS.heading) ** 2 + ( REWARDS.speed * REWARDS.distance * REWARDS.heading)
-    lc = (REWARDS.distance) ** 2 + (REWARDS.distance)
-
-    ## Stage 1 Checks
-
-    if SETTINGS.STAGE < 2:
-        return max(lc, 1e-3)
-
-    ###############################################################
-    ## Stage 2 Checks
-    ###############################################################
-
-    if is_right_turn_section() and P.steering_angle > 0:
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
-        return 1e-3
-
-    if is_left_turn_section() and P.steering_angle < -5:
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE RIGHT TURN IN LEFT TURN SECTION")
-        return 1e-3
-
-    if is_straight_section() and P.steps > 10 and abs(P.steering_angle > 15):
-        if SETTINGS.verbose:
-            print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
-        return 1e-3
-
-    if is_first_left_turn_section():
-        if P.speed - OPTIMAL.speed > 1:
-            if SETTINGS.verbose:
-                print(f"!!! TOO FAST")
-            return 1e-3
-
-    # avoid sharp turn if previous speed is fast
-    # if STATE.prev_speed > 2.3 and abs(P.steering_angle > 20):
-    #     if SETTINGS.verbose:
-    #         print(f"!!! SHOULD NOT MAKE SHARP TURN IF PREVIOUS SPEED IS TOO FAST")
-    #     return 1e-3
-
-
-
-    # Zero reward if obviously wrong direction (e.g. spin) and it is getting worst
-    # below cannot tell diff is right or left
-    # P.direction_diff = racing_direction_diff(P.optimals[0:2], P.optimals_second[0:2], [P.x, P.y], P.heading)
-    if STATE.prev_direction_diff is not None:
-        if abs(G.direction_diff) > 30 and (abs(G.direction_diff) > abs(STATE.prev_direction_diff)):
-            if SETTINGS.verbose:
-                print(f"!!! FAR AWAY FROM DIRECTION AND GETTING WORST: {G.direction_diff:.1f}, prev: {STATE.prev_direction_diff}")
-            return 1e-3
-
-
-
-    if OPTIMAL.speed - P.speed > 2 and is_straight_section():
-        if SETTINGS.verbose:
-            print(f"!!! TOO SLOW")
-        return 1e-3
-
-    if SETTINGS.STAGE < 3:
-        return max(lc, 1e-3)
-
-    ###############################################################
-    ## Stage 3 Checks
-    ###############################################################
-
-    return max(lc, 1e-3)
-
-def is_right_turn_section():
-    return (P.closest_waypoints[0] > 25 or P.closest_waypoints[1] > 25) and (P.closest_waypoints[0] < 34 or P.closest_waypoints[1] < 34)
-
-def is_first_left_turn_section():
-    return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23)
-
-def is_second_left_turn_section():
-    return (P.closest_waypoints[0] > 40 or P.closest_waypoints[1] > 40) and (P.closest_waypoints[0] < 43 or P.closest_waypoints[1] < 43)
-
-def is_left_turn_section():
-    return (P.closest_waypoints[0] > 10 or P.closest_waypoints[1] > 10) and (P.closest_waypoints[0] < 23 or P.closest_waypoints[1] < 23) or \
-        (P.closest_waypoints[0] > 40 or P.closest_waypoints[1] > 40) and (P.closest_waypoints[0] < 43 or P.closest_waypoints[1] < 43) or \
-        (P.closest_waypoints[0] > 49 or P.closest_waypoints[1] > 49) and (P.closest_waypoints[0] < 52 or P.closest_waypoints[1] < 52) or \
-        (P.closest_waypoints[0] > 61 or P.closest_waypoints[1] > 61) and (P.closest_waypoints[0] < 67 or P.closest_waypoints[1] < 67)
-
-def is_straight_section():
-    return (P.closest_waypoints[0] > 68 or P.closest_waypoints[1] > 68) or (P.closest_waypoints[0] < 10 or P.closest_waypoints[1] < 10) or \
-        (P.closest_waypoints[0] > 53 or P.closest_waypoints[1] > 53) and (P.closest_waypoints[0] < 60 or P.closest_waypoints[1] < 60)
-
-def init_state():
-    STATE.prev_speed = None
-    STATE.prev_steering_angle = None
-    STATE.prev_direction_diff = None
-    STATE.prev_normalized_distance_from_route = None
-
-def print_params():
-    if not SETTINGS.verbose:
-        return    
-    import math
-
-    if not SETTINGS.verbose:
-        return
-    if STATE.prev_speed is not None:
-      print(f"state: sp:{STATE.prev_speed:.1f} st:{STATE.prev_steering_angle:.1f} dd:{STATE.prev_direction_diff:.1f}, dt:{STATE.prev_normalized_distance_from_route:.1f}")
-    else:
-      print("empty state")
-
-    FINAL_BAR_LENGTH = 10
-    SPEED_BAR_LENGTH = 5 
-    capped_final = min(REWARDS.final, FINAL_BAR_LENGTH)
-    print(f"st:{SETTINGS.STAGE},r:{REWARDS.final:.2f} {'*' * math.ceil(capped_final*1)}{' ' * math.floor(FINAL_BAR_LENGTH-capped_final*1)}", end =" ")
-    capped_speed = min(REWARDS.speed, SPEED_BAR_LENGTH)
-    normalized_speed = (REWARDS.speed - 1.3) * SPEED_BAR_LENGTH / 4.0
-    print(f"sr:{REWARDS.speed:.1f} {'*' * math.ceil(normalized_speed)}{' ' * math.floor(SPEED_BAR_LENGTH-normalized_speed)}", end =" ")
-    print(f"dr:{REWARDS.distance:.1f} {'*' * math.ceil(REWARDS.distance*5)}{' ' * math.floor(5-REWARDS.distance*5)}", end =" ")
-    print(f"hr:{REWARDS.heading:.1f} {'*' * math.ceil(REWARDS.heading*5)}{' ' * math.floor(5-REWARDS.heading*5)}", end =" ")
-    print(f"pr:{REWARDS.progress:.1f}", end =" ")
-    speed_bar = (P.speed - 1.3) * 10.0 / (4.0 - 1.3)            
-    print(f'sp:{P.speed:.1f} {"=" * math.ceil(speed_bar)}{" " * math.floor(10 - speed_bar)}', end = ' ')
-    _l = max(0, P.steering_angle / 3)
-    print(f'sa:{P.steering_angle:5.1f} {" " * math.floor(10 - _l)}{"<" * math.ceil(_l)}', end = '|')
-    _r = max(0, P.steering_angle / -3)
-    print(f'{">" * math.ceil(_r)}{" " * math.floor(10 - _r)}', end = ' ')
-    print(f'x:{P.x:.1f}, y:{P.y:.1f}, h:{P.heading:.1f}, mr:{REWARDS.immediate:.1f}, ir:{G.intermediate_progress_bonus:.1f}, os:{OPTIMAL.speed:.1f}, dd:{G.direction_diff:.1f}, rd:{G.route_direction:.1f} ni:{G.next_index}, pt:{G.projected_time:.1f},dt:{G.dist_to_racing_line:.1f}')
-    if SETTINGS.debug:
-        print(f'dc: {P.distance_from_center:.2f}, p:{P.progress:.2f}, st:{P.steps:3.0f}, cw:{P.closest_waypoints}, rd:{G.route_direction:.1f}, aw: {P.all_wheels_on_track}, il: {P.is_left_of_center}, 2ox:{G.optimals_second[0]}, 2oy:{G.optimals_second[1]}')
-        print(f'ot: {P.is_offtrack}, tw: {P.track_width:.2f}, ni: {G.next_index}, {TRACK_INFO.racing_line[G.next_index]}')
-        print(f'-{SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME} * {TRACK_INFO.FASTEST_TIME} / ({TRACK_INFO.STANDARD_TIME} - {TRACK_INFO.FASTEST_TIME}))*({G.steps_prediction} - ({TRACK_INFO.STANDARD_TIME}*15+1))')
-        print(f'REWARDS.progress = min({SETTINGS.REWARD_PER_STEP_FOR_FASTEST_TIME}, {G.reward_prediction} / {G.steps_prediction})')
-
-    print(f"{{'all_wheels_on_track':{P.all_wheels_on_track},'x':{P.x},'y':{P.y},'distance_from_center':{P.distance_from_center},'is_left_of_center':{P.is_left_of_center},'heading':{P.heading},'progress':{P.progress},'steps':{P.steps},'speed':{P.speed},'steering_angle':{P.steering_angle},'track_width':{P.track_width},'waypoints':self.waypoints ,'closest_waypoints':{P.closest_waypoints},'is_offtrack':{P.is_offtrack}}}")
-     
-def dist_to_racing_line(closest_coords, second_closest_coords, car_coords):    
-        # Calculate the distances between 2 closest racing points
-        a = abs(dist_2_points(x1=closest_coords[0],
-                                  x2=second_closest_coords[0],
-                                  y1=closest_coords[1],
-                                  y2=second_closest_coords[1]))
-
-        # Distances between car and closest and second closest racing point
-        ob = dist_2_points(x1=car_coords[0],
-                                  x2=closest_coords[0],
-                                  y1=car_coords[1],
-                                  y2=closest_coords[1])
-        b = abs(ob)
-        c = abs(dist_2_points(x1=car_coords[0],
-                                  x2=second_closest_coords[0],
-                                  y1=car_coords[1],
-                                  y2=second_closest_coords[1]))
-
-        # Calculate distance between car and racing line (goes through 2 closest racing points)
-        # try-except in case a=0 (rare bug in DeepRacer)
-        try:
-            distance = (-(a**4) + 2*(a**2)*(b**2) + 2*(a**2)*(c**2) -
-                           (b**4) + 2*(b**2)*(c**2) - (c**4))**0.5 / (2*a)
-        except:
-            distance = ob
-
-        return distance
-
-def dist_2_points(x1, x2, y1, y2):
-            return abs(abs(x1-x2)**2 + abs(y1-y2)**2)**0.5
-
-def closest_2_racing_points_index(racing_coords, car_coords):
-            # Calculate all distances to racing points
-            distances = []
-            for i in range(len(racing_coords)):
-                distance = dist_2_points(x1=racing_coords[i][0], x2=car_coords[0],
-                                         y1=racing_coords[i][1], y2=car_coords[1])
-                distances.append(distance)
-
-            # Get index of the closest racing point
-            closest_index = distances.index(min(distances))
-
-            # Get index of the second closest racing point
-            distances_no_closest = distances.copy()
-            distances_no_closest[closest_index] = 999
-            second_closest_index = distances_no_closest.index(
-                min(distances_no_closest))
-
-            return [closest_index, second_closest_index]
- 
-# Gives back indexes that lie between start and end index of a cyclical list 
-# (start index is included, end index is not)
-def indexes_cyclical(start, end, array_len):
-            if end < start:
-                end += array_len
-
-            return [index % array_len for index in range(start, end)]
-
-# Calculate how long car would take for entire lap, if it continued like it did until now
-def get_projected_time(first_index, closest_index, step_count, times_list):
-            # Calculate how much time has passed since start
-            current_actual_time = (step_count-1) / 15
-
-            # Calculate which indexes were already passed
-            indexes_traveled = indexes_cyclical(first_index, closest_index, len(times_list))
-
-            # Calculate how much time should have passed if car would have followed optimals
-            current_expected_time = sum([times_list[i] for i in indexes_traveled])
-
-            # Calculate how long one entire lap takes if car follows optimals
-            total_expected_time = sum(times_list)
-
-            # Calculate how long car would take for entire lap, if it continued like it did until now
-            try:
-                projected_time = (current_actual_time/current_expected_time) * total_expected_time
-            except:
-                projected_time = 9999
-
-            return projected_time
-
-class STATE:
-    prev_speed = None
-    prev_steering_angle = None 
-    prev_steps = None
-    prev_direction_diff = None
-    prev_normalized_distance_from_route = None
-    first_racingpoint_index = None
-
-class REWARDS:
-    final = 0.001
-    speed = 0
-    distance = 0
-    progress = 0
-    immediate = 0
-    finish = 0
-
-class OPTIMAL:
-    speed = 0
-
-def read_params(params):
-    ################## INPUT PARAMETERS ###################
-    # Read all input parameters
-    P.all_wheels_on_track = params['all_wheels_on_track']
-    P.x = params['x']
-    P.y = params['y']
-    P.distance_from_center = params['distance_from_center']
-    P.is_left_of_center = params['is_left_of_center']
-    P.heading = params['heading']
-    P.progress = params['progress']
-    P.steps = params['steps']
-    P.speed = params['speed']
-    P.steering_angle = params['steering_angle']
-    P.track_width = params['track_width']
-    P.waypoints = params['waypoints']
-    P.closest_waypoints = params['closest_waypoints']
-    P.is_offtrack = params['is_offtrack']
