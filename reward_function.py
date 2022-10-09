@@ -315,13 +315,6 @@ def get_immediate_reward():
 
     ## Stage 1 Checks
 
-    if SETTINGS.STAGE < 2:
-        return max(lc, 1e-3)
-
-    ###############################################################
-    ## Stage 2 Checks
-    ###############################################################
-
     if is_right_turn_section() and P.steering_angle > 0:
         if SETTINGS.verbose:
             print(f"!!! SHOULD NOT MAKE LEFT TURN IN RIGHT TURN SECTION")
@@ -337,6 +330,13 @@ def get_immediate_reward():
             print(f"!!! SHOULD NOT MAKE SHARP TURN IN STRIAGHT SECTION")
         return 1e-3
 
+    if SETTINGS.STAGE < 2:
+        return max(lc, 1e-3)
+
+    ###############################################################
+    ## Stage 2 Checks
+    ###############################################################
+    
     if is_first_left_turn_section():
         if P.speed - OPTIMAL.speed > 1:
             if SETTINGS.verbose:
