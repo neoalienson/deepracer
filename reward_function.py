@@ -233,9 +233,7 @@ def reward_function(params):
     # G.intermediate_progress[ pi ] = G.intermediate_progress_bonus
 
     # REWARDS.progress = min(1, REWARDS.progress)
-
-    REWARDS.final = get_final_reward()
-
+    
     ## Incentive for finishing the lap in less steps ##
     if P.progress == 100:
         REWARDS.finish = max(1e-3, (-SETTINGS.REWARD_FOR_FASTEST_TIME /
@@ -243,6 +241,8 @@ def reward_function(params):
         print(f'finish reward:{REWARDS.finish:.1f}')
     else:
         REWARDS.finish = 0
+
+    REWARDS.final = get_final_reward()
 
     print_params()
 
