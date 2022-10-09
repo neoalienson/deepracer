@@ -5,12 +5,12 @@ class SETTINGS:
     verbose = True
     STAGE = 1
     REWARD_PER_STEP_FOR_FASTEST_TIME = 1
-    REWARD_FOR_FASTEST_TIME = 300 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
+    REWARD_FOR_FASTEST_TIME = 200 # should be adapted to track length and other rewards. finish_reward = max(1e-3, (-self.REWARD_FOR_FASTEST_TIME / (15*(self.STANDARD_TIME - self.FASTEST_TIME)))*(steps-self.STANDARD_TIME*15))
     MIN_DIST_CLOSING_BONUS = 0.5
 
 class TRACK_INFO:
-    STANDARD_TIME = 12.5  # seconds (time that is easily done by model)
-    FASTEST_TIME = 8.5  # seconds (best time of 1st place on the track)
+    STANDARD_TIME = 11.3  # seconds (time that is easily done by model)
+    FASTEST_TIME = 7.5  # seconds (best time of 1st place on the track)
     MIN_SPEED = 1.3
     MAX_SPEED = 4.0
     #################### RACING LINE ######################
